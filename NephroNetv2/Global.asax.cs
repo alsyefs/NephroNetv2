@@ -7,7 +7,7 @@ using System.Web.Routing;
 using System.Web.Security;
 using System.Web.SessionState;
 
-namespace NephroNetv2
+namespace NephroNet
 {
     public class Global : HttpApplication
     {

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NephroNetv2")]
+[assembly: AssemblyTitle("NephroNet")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NephroNetv2")]
+[assembly: AssemblyProduct("NephroNet")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("a8c862cf-44bc-479a-a085-bc2b22008e36")]
+[assembly: Guid("82ebc6c8-0840-45d1-892f-12d6375733d7")]
 
 // Version information for an assembly consists of the following four values:
 //

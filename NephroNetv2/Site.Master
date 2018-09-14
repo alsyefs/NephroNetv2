@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="NephroNetv2.SiteMaster" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="NephroNet.SiteMaster" %>
 
 <!DOCTYPE html>
 
@@ -6,13 +6,13 @@
 <head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%: Page.Title %> - My ASP.NET Application</title>
+    <title><%: Page.Title %> - Nephro Net</title>
 
     <asp:PlaceHolder runat="server">
         <%: Scripts.Render("~/bundles/modernizr") %>
     </asp:PlaceHolder>
 
-    <webopt:bundlereference runat="server" path="~/Content/css" />
+    <webopt:BundleReference runat="server" Path="~/Content/css" />
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
 </head>
@@ -39,31 +39,59 @@
             </Scripts>
         </asp:ScriptManager>
 
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        <%--<div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" runat="server" href="~/">Application name</a>
+                    </button>                    
                 </div>
                 <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li><a runat="server" href="~/">Home</a></li>
-                        <li><a runat="server" href="~/About">About</a></li>
-                        <li><a runat="server" href="~/Contact">Contact</a></li>
-                    </ul>
+                    <asp:ContentPlaceHolder ID="default" runat="server">
+                        <a class="navbar-brand" runat="server" href="/">Nephro Net</a>
+                        <ul class="nav navbar-nav">
+                            <li><a runat="server" href="About">About</a></li>
+                            <li><a runat="server" href="Contact">Contact</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a runat="server" href="~/Login">Login</a></li>
+                            <li><a runat="server" href="~/Register">Register</a></li>
+                        </ul>
+                    </asp:ContentPlaceHolder>
                 </div>
             </div>
-        </div>
+        </div>--%>
+        <%--Test start--%>
+        <nav class="navbar navbar-expand-sm navbar-dark fixed-top bg-dark">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                </button>
+                <asp:ContentPlaceHolder ID="default" runat="server">
+                    <a class="navbar-brand" runat="server" href="/">Nephro Net</a>
+                    <div class="navbar-collapse collapse" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav mr-auto">
+
+                            <li class="nav-item"><a runat="server" href="About" class="nav-link">About</a></li>
+                            <li class="nav-item"><a runat="server" href="Contact" class="nav-link">Contact</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right ">
+                            <li class="nav-item"><a runat="server" href="~/Login" id="loginLink" class="nav-link">Login</a></li>
+                            <li class="nav-item"><a runat="server" href="~/Register" id="registerLink" class="nav-link">Register</a></li>
+                        </ul>
+                    </div>
+                </asp:ContentPlaceHolder>
+            </div>
+        </nav>
+        <%--Test end--%>
         <div class="container body-content">
             <asp:ContentPlaceHolder ID="MainContent" runat="server">
             </asp:ContentPlaceHolder>
+
             <hr />
             <footer>
-                <p>&copy; <%: DateTime.Now.Year %> - My ASP.NET Application</p>
+                <p>&copy; <%: DateTime.Now.Year %> - Nephro Net</p>
             </footer>
         </div>
 

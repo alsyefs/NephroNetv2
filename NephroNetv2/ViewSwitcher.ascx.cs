@@ -7,7 +7,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Microsoft.AspNet.FriendlyUrls.Resolvers;
 
-namespace NephroNetv2
+namespace NephroNet
 {
     public partial class ViewSwitcher : System.Web.UI.UserControl
     {

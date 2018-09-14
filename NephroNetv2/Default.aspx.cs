@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace NephroNetv2
+namespace NephroNet
 {
     public partial class _Default : Page
     {

@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NephroNetv2
+namespace NephroNet
 {
 
 

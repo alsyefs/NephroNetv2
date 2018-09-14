@@ -4,14 +4,17 @@ using System.Web;
 using System.Web.Routing;
 using Microsoft.AspNet.FriendlyUrls;
 
-namespace NephroNetv2
+namespace NephroNet
 {
     public static class RouteConfig
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
             var settings = new FriendlyUrlSettings();
-            settings.AutoRedirectMode = RedirectMode.Permanent;
+            //The below is the original:
+            //settings.AutoRedirectMode = RedirectMode.Permanent;
+            //The below is new to allow ajax calls:
+            settings.AutoRedirectMode = RedirectMode.Off;
             routes.EnableFriendlyUrls(settings);
         }
     }
