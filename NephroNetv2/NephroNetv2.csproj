@@ -221,6 +221,7 @@
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="Patient.Master" />
     <Content Include="Physician.Master" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Properties\PublishProfiles\LaptopNephroNet.pubxml" />
     <None Include="Properties\PublishProfiles\ServerNephroNet.pubxml" />
     <Content Include="images\background_2.jpg" />
