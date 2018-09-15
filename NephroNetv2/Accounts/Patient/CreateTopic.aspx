@@ -21,6 +21,7 @@
                     <asp:ListItem>Select type</asp:ListItem>
                     <asp:ListItem>Discussion</asp:ListItem>
                     <asp:ListItem>Dissemination</asp:ListItem>
+                    <asp:ListItem>Consultation</asp:ListItem>
                 </asp:DropDownList>
                 &nbsp;
                 <asp:Label ID="lblTypeError" runat="server" Text="Invalid input: Please select a type." Visible="false" ForeColor="red"></asp:Label>

@@ -151,6 +151,10 @@ namespace NephroNet.Accounts.Admin
                 lblError.Visible = true;
                 lblError.Text = "This is a dissemination topic and no participations are allowed";
             }
+            else if (type.Equals("Consultation"))
+            {
+                authorized = false;
+            }
             else
             {
                 goBack();

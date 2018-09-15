@@ -86,10 +86,6 @@ namespace NephroNet.Accounts.Physician
                     goBack();
             }
         }
-        protected void Timer1_Tick(object sender, EventArgs e)
-        {
-
-        }
         protected bool isTopicApproved()
         {
             bool approved = true;
@@ -158,19 +154,7 @@ namespace NephroNet.Accounts.Physician
             string type = cmd.ExecuteScalar().ToString();
             if (type.Equals("Discussion"))
             {
-                //Count to check if the user has requested join:
-                cmd.CommandText = "select count(*) from UsersForTopics where topicId = '" + topicId + "' and userId = '" + userId + "'  ";
-                int countUserForTopic = Convert.ToInt32(cmd.ExecuteScalar());
-                if (countUserForTopic > 0)
-                {
-                    //Check if the user is approved:
-                    cmd.CommandText = "select isApproved from UsersForTopics where topicId = '" + topicId + "' and userId = '" + userId + "'  ";
-                    int isApproved = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (isApproved == 0)
-                        authorized = false;
-                }
-                else
-                    authorized = false;
+                //Do nothing...
             }
             else if (type.Equals("Dissemination"))
             {
@@ -178,6 +162,33 @@ namespace NephroNet.Accounts.Physician
                 hideErrorLabels();
                 lblError.Visible = true;
                 lblError.Text = "This is a dissemination topic and no participations are allowed";
+            }
+            else if (type.Equals("Consultation"))
+            {
+                //Get the role id of the current user
+                int int_roleId = Convert.ToInt32(roleId);
+                if(int_roleId == 2)//2 = Physician
+                {
+                    cmd.CommandText = "select count(*) from counsultations where topicId = '"+topicId+"' and physician_userId = '"+userId+"' ";
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    if (count > 0)
+                    {
+                        //This space is to be filled in the future with some actions...
+                    }
+                    else
+                        authorized = false;
+                }
+                else if(int_roleId == 3)//3 = Patient
+                {
+                    cmd.CommandText = "select count(*) from counsultations where topicId = '"+topicId+"' and patient_userId = '"+userId+"'  ";
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    if (count > 0)
+                    {
+                        //This space is to be filled in the future with some actions...
+                    }
+                    else
+                        authorized = false;
+                }
             }
             else
             {

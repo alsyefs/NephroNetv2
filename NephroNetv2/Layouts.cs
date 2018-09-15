@@ -16,16 +16,16 @@ namespace NephroNet
             string deleteCommand = "";
             bool isDeleted = checkDeleted(topicId);
             bool isTerminated = checkTerminated(topicId);
+            string profileLink = "Created by " + creator + " ";
             //Check if the user viewing the topic is the creator, or if the current user viewing is an admin:
             int int_roleId = Convert.ToInt32(roleId);
             if (topic_creatorId.Equals(userId) || int_roleId == 1)
             {
-                //deleteCommand = "&nbsp;<button id='remove_button'type='button' onmousedown=\"OpenPopup('RemoveTopic.aspx?id=" + topicId + "')\">Remove Topic</button>";
                 deleteCommand = "&nbsp;<button id='remove_button' type='button' onclick=\"removeTopic('" + topicId + "', '" + topic_creatorId + "')\">Remove Topic </button>";
             }
             if (int_roleId == 1)
             {
-                //terminateCommand = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button id='terminate_button'type='button' onmousedown=\"OpenPopup('TerminateTopic.aspx?id=" + topicId + "')\">Terminate Topic</button>";
+                profileLink = "Created by <a href=\"Profile.aspx?id=" + topic_creatorId + "\">" + creator + " </a>";
                 terminateCommand = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button id='terminate_button' type='button' onclick=\"terminateTopic('" + topicId + "', '" + topic_creatorId + "')\">Terminate Topic </button>";
             }
             if (isTerminated)
@@ -38,7 +38,7 @@ namespace NephroNet
             string header = "<div id=\"header\">" +
             "<div id=\"messageHead\">" +
             "&nbsp;\"" + topic_title + "\" " +
-            "Created by <a href=\"Profile.aspx?id="+ topic_creatorId + "\">" + creator + " </a>" +
+            profileLink +
             "as a " + topic_type.ToLower() + " topic on " + getTimeFormat(topic_time) + "</div>" +
             "<div id=\"messageDescription\"><br/>" + topic_description + "<br /><br/>" +
 			imagesHTML + "</div>" +
@@ -91,7 +91,11 @@ namespace NephroNet
                 deleteCommand = "&nbsp;<button id='remove_button' type='button' onmousedown=\"OpenPopup('RemoveEntry.aspx?id=" + entryId + "')\">Remove Entry " + i + "</button><br/>";
                 deleteCommand = "&nbsp;<button id='remove_button' type='button' onclick=\"removeMessage('" + entryId + "', "+i+", '"+ entry_creatorId + "', '"+topicId+"')\">Remove Entry " + i + "</button><br/>";
             }
-
+            string profileLink = creator_name;
+            if(int_roleId == 1)
+            {
+                profileLink = "<a href=\"Profile.aspx?id=" + entry_creatorId + "\"> " + creator_name + "</a>";
+            }
 			string background_color = "";			
             if(i % 8 == 2)
                 background_color = "style = \"background: rgb(255, 255, 255);background: rgba(203, 203, 152, 0.6);\""; //Custom color
@@ -108,7 +112,7 @@ namespace NephroNet
             else if (i % 8 == 0)
                 background_color = "style = \"background: rgb(255, 255, 255);background: rgba(209, 207, 131, 0.6);\""; //Light yellow
             string message = "<div id=\"message\" " + background_color + " ><div id=\"messageHead\">&nbsp;Message #" + i + " - added by " + 
-                "<a href=\"Profile.aspx?id=" + entry_creatorId + "\"> "    +creator_name + "</a>"+ 
+                profileLink + 
                 " on " + getTimeFormat(entry_time) + "</div> " +
                     "<div id=\"messageDescription\"><p><br/>" + entry_text + "</p><br /> " +
 						imagesHtml +

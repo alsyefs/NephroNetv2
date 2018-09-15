@@ -41,105 +41,50 @@ namespace NephroNet.Accounts.Admin
             int isActive = Convert.ToInt32(cmd.ExecuteScalar());
             cmd.CommandText = "select roleId from logins where loginId = '" + account_loginId + "' ";
             int account_roleId = Convert.ToInt32(cmd.ExecuteScalar());
-            cmd.CommandText = "select shortProfile_isPrivate from ShortProfiles where userId = '" + profileId + "' ";
-            int isPrivate = Convert.ToInt32(cmd.ExecuteScalar());
-            cmd.CommandText = "select shortProfileId from ShortProfiles where userId = '" + profileId + "' ";
-            string shortProfileId = cmd.ExecuteScalar().ToString();
-            cmd.CommandText = "select count(*) from BlockedUsers where shortProfileId = '" + shortProfileId + "' ";
-            int countBlocked = Convert.ToInt32(cmd.ExecuteScalar());
-            bool current_user_isBlocked = false;
-            for (int i = 1; i <= countBlocked; i++)
-            {
-                cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY BlockedUserId ASC), * " +
-                    "FROM [BlockedUsers] where shortProfileId = '" + shortProfileId + "' ) as t where rowNum = '" + i + "'";
-                string blocked_userId = cmd.ExecuteScalar().ToString();
-                if (blocked_userId.Equals(current_userId))
-                    current_user_isBlocked = true;
-            }
             connect.Close();
-            int int_roleId = Convert.ToInt32(roleId);
-            lblAdminCommands.Text = "";
-            if (int_roleId == 1)
+            //if physician, check the PhysicianCompleteProfiles table to see if the profile is private:
+            if (account_roleId == 2)//2 = Physician
             {
-                //Display the information:
-                getShortProfileInformation();
-                getCompleteProfileInformation();
-                //string terminateCommand = "<br/><button id='terminate_button'type='button' onmousedown=\"OpenPopup('TerminateAccount.aspx?id=" + profileId + "')\">Terminate Account</button>";
-                //string unlockCommand = "<br/><button id='unlock_button'type='button' onmousedown=\"OpenPopup('UnlockAccount.aspx?id=" + profileId + "')\">Unlock Account</button>";
-                string terminateCommand = "<br/><button id='terminate_button'type='button' onclick=\"terminateAccount('" + profileId + "')\">Terminate Account</button>";
-                string unlockCommand = "<br/><button id='unlock_button'type='button' onclick=\"unlockAccount('" + profileId + "')\">Unlock Account</button>";
-                if (isActive == 1 && account_loginId != loginId)
-                    lblAdminCommands.Text += terminateCommand;
-                else if (isActive == 0 && account_loginId != loginId)
-                    lblAdminCommands.Text += unlockCommand;
-            }
-            if (int_roleId != 1)
-            {
-                if (isPrivate == 0 && !current_user_isBlocked)//if current user not admin and profile is public and current user not blocked, show info
-                    getShortProfileInformation(); //Display the information:
-                else
+                connect.Open();
+                cmd.CommandText = "select PhysicianCompleteProfiles_isPrivate from PhysicianCompleteProfiles where userId = '" + profileId + "' ";
+                int physician_isPrivate = Convert.ToInt32(cmd.ExecuteScalar());
+                connect.Close();
+                if (physician_isPrivate == 0)
                 {
-                    lblRow.Text = "This account is private.";
+                    //fetch information...
+                    getPhysicianCompleteProfileInformation(profileId);
                 }
+                else
+                    lblRow.Text = "The account you are trying to access is private.";
             }
+            //if patient, check the PatientCompleteProfiles table to see if the profile is private:
+            else if (account_roleId == 3)//3 = Patient
+            {
+                connect.Open();
+                cmd.CommandText = "select PatientCompleteProfiles_isPrivate from PatientCompleteProfiles where userId = '" + profileId + "' ";
+                int patient_isPrivate = Convert.ToInt32(cmd.ExecuteScalar());
+                connect.Close();
+                if (patient_isPrivate == 0)
+                {
+                    //fetch information...
+                    //Display the information:
+                    getPatientCompleteProfileInformation(profileId);
+                }
+                else
+                    lblRow.Text = "The account you are trying to access is private.";
+            }
+            string terminateCommand = "<br/><button id='terminate_button'type='button' onclick=\"terminateAccount('" + profileId + "')\">Terminate Account</button>";
+            string unlockCommand = "<br/><button id='unlock_button'type='button' onclick=\"unlockAccount('" + profileId + "')\">Unlock Account</button>";
+            if (isActive == 1 && account_loginId != loginId)
+                lblAdminCommands.Text += terminateCommand;
+            else if (isActive == 0 && account_loginId != loginId)
+                lblAdminCommands.Text += unlockCommand;
         }
-        protected void getShortProfileInformation()
+        protected void getPhysicianCompleteProfileInformation(string id)
         {
-            lblRow.Text = "";
-            string row = "";
-            string col_start = "<td>", col_end = "</td>", row_start = "<tr>", row_end = "</tr>";
-            connect.Open();
-            SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
-            string userId = cmd.ExecuteScalar().ToString();
-            ShortProfile shortProfile = new ShortProfile(profileId, userId);
-            string shortProfileId = shortProfile.Id;
-            string name = shortProfile.FirstName + " " + shortProfile.LastName;
-            string race = shortProfile.Race;
-            string gender = shortProfile.Gender;
-            string birthdate = shortProfile.Birthdate;
-            string nationality = shortProfile.Nationality;
-            int shortProfile_roleId = shortProfile.RoleId;
-            ArrayList blockedUsers = shortProfile.BlockedUsers;
-            ArrayList currentHealthConditions = shortProfile.CurrentHealthConditions;
-            ArrayList currentTreatments = shortProfile.CurrentTreatments;
-            string role_name = shortProfile.RoleName;
-            row += row_start + col_start + "Short Profile Information: " + col_end + row_end;
-            row += row_start + col_start + "Name: " + col_end + col_start + name + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(race))
-                row += row_start + col_start + "Race: " + col_end + col_start + race + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(gender))
-                row += row_start + col_start + "Gender: " + col_end + col_start + gender + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(birthdate))
-                row += row_start + col_start + "Birthdate: " + col_end + col_start + Layouts.getBirthdateFormat(birthdate) + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(nationality))
-                row += row_start + col_start + "Nationality: " + col_end + col_start + nationality + col_end + row_end;
-            row += row_start + col_start + "Role: " + col_end + col_start + role_name + col_end + row_end;
-            //loop through blocked users:
-            if (blockedUsers.Count > 0)
-            {
-                row += row_start + col_start + "Blocked users: " + col_end + col_start + "" + col_end + row_end;
-                for (int i = 0; i < blockedUsers.Count; i++)
-                    row += row_start + col_start + "" + col_end + col_start + (i + 1) + ". " + blockedUsers[i].ToString() + col_end + row_end;
-            }
-            //loop through current health conditions:
-            if (currentHealthConditions.Count > 0)
-            {
-                row += row_start + col_start + "Current health conditions: " + col_end + col_start + "" + col_end + row_end;
-                for (int i = 0; i < currentHealthConditions.Count; i++)
-                    row += row_start + col_start + "" + col_end + col_start + (i + 1) + ". " + currentHealthConditions[i].ToString() + col_end + row_end;
-            }
-            //loop through current Treatments:
-            if (currentTreatments.Count > 0)
-            {
-                row += row_start + col_start + "Current Treatments: " + col_end + col_start + "" + col_end + row_end;
-                for (int i = 0; i < currentTreatments.Count; i++)
-                    row += row_start + col_start + "" + col_end + col_start + (i + 1) + ". " + currentTreatments[i].ToString() + col_end + row_end;
-            }
-            lblRow.Text += row;
-            connect.Close();
+
         }
-        protected void getCompleteProfileInformation()
+        protected void getPatientCompleteProfileInformation(string id)
         {
             string newLine = "<br/>";
             string col_start = "<td>", col_end = "</td>", row_start = "<tr>", row_end = "</tr>";

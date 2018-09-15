@@ -237,6 +237,57 @@ namespace NephroNet.Accounts.Physician
             connect.Close();
             return topicId;
         }
+
+        protected void drpType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (drpType.SelectedIndex == 3)//3 = Consultation
+            {
+                lblFindUser.Visible = true;
+                txtFindUser.Visible = true;
+                drpFindUser.Visible = true;
+            }
+            else
+            {
+                lblFindUser.Visible = false;
+                txtFindUser.Visible = false;
+                lblFindUserResult.Visible = false;
+                drpFindUser.Visible = false;
+            }
+        }
+
+        protected void drpFindUser_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedUser = drpFindUser.SelectedValue;
+            lblFindUserResult.Text = "Selected user: "+selectedUser;
+            lblFindUserResult.Visible = true;
+        }
+
+        protected void txtFindUser_TextChanged(object sender, EventArgs e)
+        {
+            drpFindUser.Items.Clear();
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select count(user_firstname + ' ' + user_lastname) from Users where (user_firstname + ' ' + user_lastname) like '%"+txtFindUser.Text.Replace("'", "''")+"%'  ";
+            int count = Convert.ToInt32(cmd.ExecuteScalar());
+            for (int i =1; i <= count; i++)
+            {
+                cmd.CommandText = "select userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname + ' ' + user_lastname) like '%" + txtFindUser.Text.Replace("'", "''") + "%' ) as t where rowNum = '" + i + "'";
+                string temp_userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from users where userId = '"+temp_userId+"' ";
+                string temp_user = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select loginId from Users where userId = '"+temp_userId+"' ";
+                int temp_loginId = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select login_isActive from Logins where loginId = '"+temp_loginId+"' ";
+                int temp_isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select roleId from Logins where loginId = '" + temp_loginId + "' ";
+                int temp_roleId = Convert.ToInt32(cmd.ExecuteScalar());
+                int int_loginId = Convert.ToInt32(loginId);
+                if(temp_isActive == 1 && temp_roleId == 3 && temp_loginId != int_loginId)
+                drpFindUser.Items.Add(temp_user);
+            }
+            connect.Close();
+        }
+
         protected Boolean checkInput()
         {
             Boolean correct = true;
