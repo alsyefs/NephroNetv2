@@ -24,10 +24,6 @@
                         <td><asp:Label ID="lblNewMessages" runat="server" Text="Label"></asp:Label></td>
                         <td><asp:Button ID="btnNewMessages" runat="server" Text="Review Messages" Width="190px" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" OnClick="btnNewMessages_Click" /></td>
                     </tr>
-                    <tr>
-                        <td><asp:Label ID="lblNewJoinTopicRequests" runat="server" Text="Label"></asp:Label></td>
-                        <td><asp:Button ID="btnNewJoinTopicRequests" runat="server" Text="Review Join Requests" Width="190px" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" OnClick="btnNewJoinTopicRequests_Click" /></td>
-                    </tr>
                 </table>
                 <br />
                 <%--General error message:--%>

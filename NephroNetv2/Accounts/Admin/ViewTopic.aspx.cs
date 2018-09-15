@@ -62,6 +62,7 @@ namespace NephroNet.Accounts.Admin
                         previousPage = "Home.aspx";
                 }
             }
+            
         }
         protected bool isTopicApproved()
         {
@@ -153,7 +154,7 @@ namespace NephroNet.Accounts.Admin
             }
             else if (type.Equals("Consultation"))
             {
-                authorized = false;
+
             }
             else
             {
@@ -334,6 +335,23 @@ namespace NephroNet.Accounts.Admin
             lblHeader.Text = getHeader();
             //Display info:
             lblContents.Text = getContents(pageNum);
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            //check if topic is for dissemination. If type = Dissemination, then ignore authorization:
+            cmd.CommandText = "select topic_type from Topics where topicId = '" + topicId + "' ";
+            string type = cmd.ExecuteScalar().ToString();
+            connect.Close();
+            if (type.Equals("Consultation"))
+            {
+                //Show header:
+                lblHeader.Text = "This is a private discussion";
+                //Display info:
+                lblContents.Text = " ";
+                lblEntry.Visible = false;
+                txtEntry.Visible = false;
+                FileUpload1.Visible = false;
+                btnSubmit.Visible = false;
+            }
             //Maybe create new labels and place them for each entry:
             //<div id="div1" runat = "sever" ></div> //<-- Add this in the web page as a placeholder for the label.
             //Label lblNew = new Label();

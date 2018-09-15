@@ -169,30 +169,30 @@ namespace NephroNet.Accounts.Patient
             }
             else if (type.Equals("Consultation"))
             {
-                //Get the role id of the current user
-                int int_roleId = Convert.ToInt32(roleId);
-                if (int_roleId == 2)//2 = Physician
-                {
-                    cmd.CommandText = "select count(*) from counsultations where topicId = '" + topicId + "' and physician_userId = '" + userId + "' ";
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (count > 0)
-                    {
-                        //This space is to be filled in the future with some actions...
-                    }
-                    else
-                        authorized = false;
-                }
-                else if (int_roleId == 3)//3 = Patient
-                {
-                    cmd.CommandText = "select count(*) from counsultations where topicId = '" + topicId + "' and patient_userId = '" + userId + "'  ";
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (count > 0)
-                    {
-                        //This space is to be filled in the future with some actions...
-                    }
-                    else
-                        authorized = false;
-                }
+                ////Get the role id of the current user
+                //int int_roleId = Convert.ToInt32(roleId);
+                //if (int_roleId == 2)//2 = Physician
+                //{
+                //    cmd.CommandText = "select count(*) from counsultations where topicId = '" + topicId + "' and physician_userId = '" + userId + "' ";
+                //    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                //    if (count > 0)
+                //    {
+                //        //This space is to be filled in the future with some actions...
+                //    }
+                //    else
+                //        authorized = false;
+                //}
+                //else if (int_roleId == 3)//3 = Patient
+                //{
+                //    cmd.CommandText = "select count(*) from counsultations where topicId = '" + topicId + "' and patient_userId = '" + userId + "'  ";
+                //    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                //    if (count > 0)
+                //    {
+                //        //This space is to be filled in the future with some actions...
+                //    }
+                //    else
+                //        authorized = false;
+                //}
             }
             else
             {
@@ -368,10 +368,78 @@ namespace NephroNet.Accounts.Patient
         }
         protected void showInformation(int pageNum)
         {
-            //Show header:
-            lblHeader.Text = getHeader();
-            //Display info:
-            lblContents.Text = getContents(pageNum);
+            //divMessages.InnerHtml = getContents(pageNum);
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            //check if topic is for dissemination. If type = Dissemination, then ignore authorization:
+            cmd.CommandText = "select topic_type from Topics where topicId = '" + topicId + "' ";
+            string type = cmd.ExecuteScalar().ToString();
+            //Get the userId:
+            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+            string userId = cmd.ExecuteScalar().ToString();
+            connect.Close();
+            if (type.Equals("Consultation"))
+            {
+                //Get the role id of the current user
+                int int_roleId = Convert.ToInt32(roleId);
+                if (int_roleId == 2)//2 = Physician
+                {
+                    connect.Open();
+                    cmd.CommandText = "select count(*) from consultations where topicId = '" + topicId + "' and physician_userId = '" + userId + "' ";
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    connect.Close();
+                    if (count > 0)
+                    {
+                        //Show header:
+                        lblHeader.Text = getHeader();
+                        //Display info:
+                        lblContents.Text = getContents(pageNum);
+                    }
+                    else
+                    {
+                        //Show header:
+                        lblHeader.Text = "This is a private discussion";
+                        //Display info:
+                        lblContents.Text = " ";
+                        lblEntry.Visible = false;
+                        txtEntry.Visible = false;
+                        FileUpload1.Visible = false;
+                        btnSubmit.Visible = false;
+                    }
+                }
+                else if (int_roleId == 3)//3 = Patient
+                {
+                    connect.Open();
+                    cmd.CommandText = "select count(*) from consultations where topicId = '" + topicId + "' and patient_userId = '" + userId + "'  ";
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    connect.Close();
+                    if (count > 0)
+                    {
+                        //Show header:
+                        lblHeader.Text = getHeader();
+                        //Display info:
+                        lblContents.Text = getContents(pageNum);
+                    }
+                    else
+                    {
+                        //Show header:
+                        lblHeader.Text = "This is a private discussion";
+                        //Display info:
+                        lblContents.Text = " ";
+                        lblEntry.Visible = false;
+                        txtEntry.Visible = false;
+                        FileUpload1.Visible = false;
+                        btnSubmit.Visible = false;
+                    }
+                }
+            }
+            else
+            {
+                //Show header:
+                lblHeader.Text = getHeader();
+                //Display info:
+                lblContents.Text = getContents(pageNum);
+            }
             //Maybe create new labels and place them for each entry:
             //<div id="div1" runat = "sever" ></div> //<-- Add this in the web page as a placeholder for the label.
             //Label lblNew = new Label();

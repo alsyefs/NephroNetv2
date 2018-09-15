@@ -30,10 +30,13 @@
                             </tr>
                             <tr>
                                 <td><asp:Label ID="lblFindUser" runat="server" Text="Find patient" Visible ="false" Width ="100%"></asp:Label></td>
-                                <td><asp:TextBox ID="txtFindUser" runat="server" Visible ="false" Width ="100%" AutoPostBack="true" OnTextChanged="txtFindUser_TextChanged"></asp:TextBox>
+                                <td><asp:TextBox ID="txtFindUser" runat="server" Visible ="false" Width ="100%" AutoPostBack="true" OnTextChanged="txtFindUser_TextChanged"></asp:TextBox></td>
+                            </tr>
+                            <tr>
+                                <td><asp:Label ID="lblSelectUser" runat="server" Text="Select patient" Visible ="false" Width ="100%"></asp:Label></td>
+                                <td><asp:ListBox ID="drpFindUser" runat="server" Visible ="false" Width="100%" AutoPostBack="true" OnSelectedIndexChanged="drpFindUser_SelectedIndexChanged"></asp:ListBox>
                                     <br />
-                                <asp:ListBox ID="drpFindUser" runat="server" Visible ="false" Width="100%" AutoPostBack="true" OnSelectedIndexChanged="drpFindUser_SelectedIndexChanged"></asp:ListBox></td>
-                                <td><asp:Label ID="lblFindUserResult" runat="server" Text=" user" Visible ="false" Width ="100%"></asp:Label></td>
+                                <asp:Label ID="lblFindUserResult" runat="server" Text="" Visible ="false" Width ="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td><asp:Label ID="lblTags" runat="server" Text="Tags" Width ="100%"></asp:Label></td>

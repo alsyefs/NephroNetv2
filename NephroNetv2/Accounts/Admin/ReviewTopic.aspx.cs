@@ -207,8 +207,6 @@ namespace NephroNet.Accounts.Admin
             cmd.ExecuteScalar();
             cmd.CommandText = "select topic_createdBy from topics where topicId = '"+topicId+"' ";
             string creatorId = cmd.ExecuteScalar().ToString();
-            cmd.CommandText = "update UsersForTopics set isApproved = 1 where topicId = '" + topicId + "' and userId = '"+ creatorId + "' ";
-            cmd.ExecuteScalar();
             connect.Close();
             //Create an email message to be sent:
             string emailMessage = "Hello " + g_creator + ",\n\n" +

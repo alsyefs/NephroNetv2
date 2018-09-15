@@ -11,9 +11,9 @@
                 <asp:Label ID="lblHeader" runat="server" Text="Header" Font-Bold="True"></asp:Label>
                 <br />
                
-                <%--<asp:Label ID="lblContents" runat="server" Text="Contents"></asp:Label>--%>
+                <asp:Label ID="lblContents" runat="server" Text="Contents"></asp:Label>
 
-                <div runat="server" id="divMessages"></div>
+                <%--<div runat="server" id="divMessages"></div>--%>
 
 
                 <br />
