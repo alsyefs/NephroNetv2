@@ -222,6 +222,7 @@
     <Content Include="Patient.Master" />
     <Content Include="Physician.Master" />
     <None Include="Properties\PublishProfiles\LaptopNephroNet.pubxml" />
+    <None Include="Properties\PublishProfiles\LaptopNephroNetv2.pubxml" />
     <None Include="Properties\PublishProfiles\ServerNephroNet.pubxml" />
     <Content Include="images\background_2.jpg" />
     <Content Include="Login.aspx" />
