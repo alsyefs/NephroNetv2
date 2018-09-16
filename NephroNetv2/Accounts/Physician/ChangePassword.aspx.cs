@@ -21,8 +21,16 @@ namespace NephroNet.Accounts.Physician
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
+            //Get from and to pages:
+            string current_page = "", previous_page = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) current_page = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previous_page = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
             CheckPhysicianSession session = new CheckPhysicianSession();
-            bool correctSession = session.sessionIsCorrect(username, roleId, token);
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
             if (!IsPostBack)
@@ -33,7 +41,22 @@ namespace NephroNet.Accounts.Physician
                     previousPage = "Home.aspx";
             }
         }
-        
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
+        }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
             bool correctInput = checkInputs();

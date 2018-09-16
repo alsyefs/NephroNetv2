@@ -47,13 +47,20 @@
                             <tr>
                                 <td><asp:Label ID="lblDescription" runat="server" Text="Description" Width ="100%"></asp:Label></td>
                                 <td><asp:TextBox ID="txtDescription" runat="server" Height="100px" Width ="100%" TextMode="MultiLine" CssClass="content"></asp:TextBox></td>
-                            </tr>
-                            <tr>
-                                <td> </td>
                                 <td><asp:Label ID="lblDescriptionError" runat="server" Text="Invalid input: Please type a description." Visible="false" ForeColor="red" Width ="100%"></asp:Label></td>
                             </tr>
-                            <tr>
-                                <td> </td>
+                            </table>
+                    </ContentTemplate>
+                    <Triggers>
+                        <%--<asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />--%>
+                        <asp:AsyncPostBackTrigger ControlID="drpType" EventName="SelectedIndexChanged" />
+                        <asp:AsyncPostBackTrigger ControlID="txtFindUser" EventName="TextChanged" />
+                        <asp:AsyncPostBackTrigger ControlID="drpFindUser" EventName="SelectedIndexChanged" />
+                    </Triggers>
+                </asp:UpdatePanel>
+                <table>
+                    <tr>
+                                <td><asp:Label ID="lblFileUpload" runat="server" Text="Upload images" Width ="100%"></asp:Label></td>
                                 <td><asp:FileUpload ID="FileUpload1" runat="server" Width ="100%" AllowMultiple="true" onchange="onInputChange(event)" class="btn btn-primary" /></td>
                                 <td><div id='fileNames' style="width:100%"></div></td>
                             </tr>
@@ -67,8 +74,8 @@
                                 <%--Cancel button--%>
                                 <td><asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Width ="140px" OnClick="btnCancel_Click" /></td>
                             </tr>
-                        </table>
-                        <%--Error message--%>
+                </table>
+                 <%--Error message--%>
                         <br />
                         <br />
                         <asp:Label ID="lblError" runat="server" ForeColor="Red" Text="Label" Visible="False"></asp:Label>
@@ -82,14 +89,6 @@
                                 $('#fileNames').html(res);
                             }
                         </script>
-                    </ContentTemplate>
-                    <Triggers>
-                        <asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />
-                        <asp:AsyncPostBackTrigger ControlID="drpType" EventName="SelectedIndexChanged" />
-                        <asp:AsyncPostBackTrigger ControlID="txtFindUser" EventName="TextChanged" />
-                        <asp:AsyncPostBackTrigger ControlID="drpFindUser" EventName="SelectedIndexChanged" />
-                    </Triggers>
-                </asp:UpdatePanel>
             </div>
         </div>
     </div>

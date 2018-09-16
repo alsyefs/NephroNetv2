@@ -35,10 +35,34 @@ namespace NephroNet.Accounts.Physician
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
+            //Get from and to pages:
+            string current_page = "", previous_page = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) current_page = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previous_page = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
             CheckPhysicianSession session = new CheckPhysicianSession();
-            bool correctSession = session.sessionIsCorrect(username, roleId, token);
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
         {
@@ -64,14 +88,25 @@ namespace NephroNet.Accounts.Physician
         }
         protected int getTotalApprovedTopics()
         {
+            int count = 0;
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             //Get the current user ID:
             cmd.CommandText = "select userId from users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            //count the approved topics for the current user:
-            cmd.CommandText = "select count(*) from UsersForTopics where isApproved = 1 and [userId] = '" + userId + "' ";
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
+            int int_roleId = Convert.ToInt32(roleId);
+            if(int_roleId == 2)//If the current user is a physician:
+            {
+                //count the consultation topics for the current user:
+                cmd.CommandText = "select count(*) from Consultations where physician_userId = '" + userId + "' ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            else if (int_roleId == 3)//If the current user is a patient:
+            {
+                //count the consultation topics for the current user:
+                cmd.CommandText = "select count(*) from Consultations where patient_userId = '" + userId + "' ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
             connect.Close();
             return count;
         }
@@ -83,6 +118,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time Created", typeof(string));
             dt.Columns.Add("Current Participants", typeof(string));
             string id = "", title = "", type = "", time = "";
+            int int_roleId = Convert.ToInt32(roleId);
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             //Get the current user ID:
@@ -90,9 +126,18 @@ namespace NephroNet.Accounts.Physician
             string userId = cmd.ExecuteScalar().ToString();
             for (int i = 1; i <= count; i++)
             {
-                //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY usersForTopicsId ASC), * FROM [UsersForTopics] where isApproved = 1 and userId = '" + userId + "' ) as t where rowNum = '" + i + "'";
-                id = cmd.ExecuteScalar().ToString();
+                if (int_roleId == 2)//If the current user is a physician:
+                {
+                    //Get the topic ID:
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where physician_userId = '" + userId + "' ) as t where rowNum = '" + i + "'";
+                    id = cmd.ExecuteScalar().ToString();
+                }
+                else if (int_roleId == 3)//If the current user is a patient:
+                {
+                    //Get the topic ID:
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where patient_userId = '" + userId + "' ) as t where rowNum = '" + i + "'";
+                    id = cmd.ExecuteScalar().ToString();
+                }
                 cmd.CommandText = "select topic_isTerminated from topics where topicId = '" + id + "' ";
                 int isTerminated = Convert.ToInt32(cmd.ExecuteScalar());
                 cmd.CommandText = "select topic_isDeleted from topics where topicId = '" + id + "' ";
@@ -112,7 +157,15 @@ namespace NephroNet.Accounts.Physician
                     cmd.CommandText = "select [topic_createdBy] from topics where topicId = '" + id + "' ";
                     string creatorId = cmd.ExecuteScalar().ToString();
                     //dt.Rows.Add(id, title, Layouts.getTimeFormat(time), participantLink);
-                    dt.Rows.Add(id, title, Layouts.getTimeFormat(time));
+                    cmd.CommandText = "select patient_userId from [Consultations] where topicId = '" + id + "' ";
+                    string patientId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + patientId + "' ";
+                    string patientName = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select physician_userId from [Consultations] where topicId = '" + id + "' ";
+                    string physicianId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + physicianId + "' ";
+                    string physicianName = cmd.ExecuteScalar().ToString();
+                    dt.Rows.Add(id, title, Layouts.getTimeFormat(time), physicianName + ", " + patientName);
                 }
             }
 
@@ -125,35 +178,47 @@ namespace NephroNet.Accounts.Physician
             {
                 grdTopics.Rows[i].Cells[1].Visible = false;
             }
-            for (int row = 0; row < grdTopics.Rows.Count; row++)
-            {
-                id = grdTopics.Rows[row].Cells[1].Text;
-                //Get total approved participants for a topic:                
-                cmd.CommandText = "select count(*) from UsersForTopics where topicId = '" + id + "' and isApproved = '1' ";
-                int totalApprovedParticipants = Convert.ToInt32(cmd.ExecuteScalar());
-                for (int j = 1; j <= totalApprovedParticipants; j++)
-                {
-                    HyperLink participantLink = new HyperLink();
-                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY UsersForTopicsId ASC), * FROM [UsersForTopics] where topicId = '" + id + "' and isApproved = '1') as t where rowNum = '" + j + "'";
-                    string participantId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_firstname from Users where userId = '" + participantId + "' ";
-                    string participant_name = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_lastname from Users where userId = '" + participantId + "' ";
-                    participant_name = participant_name + " " + cmd.ExecuteScalar().ToString();
-                    participantLink.Text = participant_name + " ";
-                    participantLink.NavigateUrl = "Profile.aspx?id=" + participantId;
-                    grdTopics.Rows[row].Cells[4].Controls.Add(participantLink);
-                    if (totalApprovedParticipants > 1)
-                    {
-                        HyperLink temp = new HyperLink();
-                        temp.Text = "<br/>";
-                        grdTopics.Rows[row].Cells[4].Controls.Add(temp);
-                    }
-                }
-                if (totalApprovedParticipants == 0)
-                    grdTopics.Rows[row].Cells[4].Text = "There are no participants";
+            //for (int row = 0; row < grdTopics.Rows.Count; row++)
+            //{
+            //    id = grdTopics.Rows[row].Cells[1].Text;
+            //    //Get total approved participants for a topic:                
+            //    cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' ";
+            //    int totalApprovedParticipants = Convert.ToInt32(cmd.ExecuteScalar());
+            //    for (int j = 1; j <= totalApprovedParticipants; j++)
+            //    {
+            //        HyperLink patientLink = new HyperLink();
+            //        cmd.CommandText = "select patient_userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where topicId = '" + id + "') as t where rowNum = '" + j + "'";
+            //        string patientId = cmd.ExecuteScalar().ToString();
+            //        cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + patientId + "' ";
+            //        string patient_name = cmd.ExecuteScalar().ToString();
+            //        patientLink.Text = patient_name + " ";
+            //        //participantLink.NavigateUrl = "Profile.aspx?id=" + patientId;
+            //        grdTopics.Rows[row].Cells[4].Controls.Add(patientLink);
+            //        if (totalApprovedParticipants > 1)
+            //        {
+            //            HyperLink temp = new HyperLink();
+            //            temp.Text = "<br/>";
+            //            grdTopics.Rows[row].Cells[4].Controls.Add(temp);
+            //        }
+            //        HyperLink physicianLink = new HyperLink();
+            //        cmd.CommandText = "select physician_userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where topicId = '" + id + "') as t where rowNum = '" + j + "'";
+            //        string physicianId = cmd.ExecuteScalar().ToString();
+            //        cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + physicianId + "' ";
+            //        string physicianName = cmd.ExecuteScalar().ToString();
+            //        physicianLink.Text = physicianName + " ";
+            //        //participantLink.NavigateUrl = "Profile.aspx?id=" + patientId;
+            //        grdTopics.Rows[row].Cells[4].Controls.Add(patientLink);
+            //        if (totalApprovedParticipants > 1)
+            //        {
+            //            HyperLink temp = new HyperLink();
+            //            temp.Text = "<br/>";
+            //            grdTopics.Rows[row].Cells[4].Controls.Add(temp);
+            //        }
+            //    }
+            //    if (totalApprovedParticipants == 0)
+            //        grdTopics.Rows[row].Cells[4].Text = "There are no participants";
 
-            }
+            //}
             connect.Close();
         }
         protected void grdTopics_PageIndexChanging(object sender, GridViewPageEventArgs e)
@@ -167,9 +232,9 @@ namespace NephroNet.Accounts.Physician
             {
                 grdTopics.Rows[i].Cells[1].Visible = false;
             }
-            reBindValues();
+            //rebindValues();
         }
-        protected void reBindValues()
+        protected void rebindValues()
         {
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
@@ -178,20 +243,32 @@ namespace NephroNet.Accounts.Physician
             {
                 id = grdTopics.Rows[row].Cells[1].Text;
                 //Get total approved participants for a topic:                
-                cmd.CommandText = "select count(*) from UsersForTopics where topicId = '" + id + "' and isApproved = '1' ";
+                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' ";
                 int totalApprovedParticipants = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalApprovedParticipants; j++)
                 {
                     HyperLink participantLink = new HyperLink();
-                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY UsersForTopicsId ASC), * FROM [UsersForTopics] where topicId = '" + id + "' and isApproved = '1') as t where rowNum = '" + j + "'";
-                    string participantId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_firstname from Users where userId = '" + participantId + "' ";
-                    string participant_name = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_lastname from Users where userId = '" + participantId + "' ";
-                    participant_name = participant_name + " " + cmd.ExecuteScalar().ToString();
-                    participantLink.Text = participant_name + " ";
-                    participantLink.NavigateUrl = "Profile.aspx?id=" + participantId;
+                    cmd.CommandText = "select patient_userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where topicId = '" + id + "') as t where rowNum = '" + j + "'";
+                    string patientId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + patientId + "' ";
+                    string patient_name = cmd.ExecuteScalar().ToString();
+                    participantLink.Text = patient_name + " ";
+                    //participantLink.NavigateUrl = "Profile.aspx?id=" + patientId;
                     grdTopics.Rows[row].Cells[4].Controls.Add(participantLink);
+                    if (totalApprovedParticipants > 1)
+                    {
+                        HyperLink temp = new HyperLink();
+                        temp.Text = "<br/>";
+                        grdTopics.Rows[row].Cells[4].Controls.Add(temp);
+                    }
+                    HyperLink physicianLink = new HyperLink();
+                    cmd.CommandText = "select physician_userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY consultationId ASC), * FROM [Consultations] where topicId = '" + id + "') as t where rowNum = '" + j + "'";
+                    string physicianId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from Users where userId = '" + physicianId + "' ";
+                    string physicianName = cmd.ExecuteScalar().ToString();
+                    physicianLink.Text = patient_name + " ";
+                    //participantLink.NavigateUrl = "Profile.aspx?id=" + patientId;
+                    grdTopics.Rows[row].Cells[4].Controls.Add(physicianLink);
                     if (totalApprovedParticipants > 1)
                     {
                         HyperLink temp = new HyperLink();

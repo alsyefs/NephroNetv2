@@ -134,14 +134,21 @@ namespace NephroNet
             loginId = (string)(Session["loginId"]);
             token = (string)(Session["token"]);
         }
-
         protected void Page_Load(object sender, EventArgs e)
         {
             getSession();
             if (!IsPostBack)
             {
+                //Get from and to pages:
+                string currentPage = "", previousPage = "";
+                if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
+                if (Request.UrlReferrer != null) previousPage = Request.UrlReferrer.ToString();
+                //Get current time:
+                DateTime currentTime = DateTime.Now;
+                //Get user's IP:
+                string userIP = GetIPAddress();
                 CheckSession session = new CheckSession();
-                bool correctSession = session.sessionIsCorrect(username, roleId, token);
+                bool correctSession = session.sessionIsCorrect(username, roleId, token, currentPage, previousPage, currentTime, userIP);
                 if (!correctSession)
                     clearSession();
                 else
@@ -150,6 +157,22 @@ namespace NephroNet
                 }
                 fillDropLists();
             }
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void fillDropLists()
         {

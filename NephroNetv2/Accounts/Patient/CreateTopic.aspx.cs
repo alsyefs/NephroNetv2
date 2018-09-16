@@ -7,6 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -18,18 +19,45 @@ namespace NephroNet.Accounts.Patient
         static string conn = "";
         SqlConnection connect = new SqlConnection(conn);
         string username, roleId, loginId, token;
+        static ArrayList consultationUsers = new ArrayList();
         protected void Page_Load(object sender, EventArgs e)
+        {
+            initialAccess();
+        }
+        protected void initialAccess()
         {
             Configuration config = new Configuration();
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
-            //addSession();
+            //Get from and to pages:
+            string current_page = "", previous_page = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) current_page = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previous_page = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
             CheckPatientSession session = new CheckPatientSession();
-            bool correctSession = session.sessionIsCorrect(username, roleId, token);
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
-            
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
         {
@@ -53,7 +81,6 @@ namespace NephroNet.Accounts.Patient
             loginId = (string)(Session["loginId"]);
             token = (string)(Session["token"]);
         }
-
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
             hideErrorLabels();
@@ -147,9 +174,6 @@ namespace NephroNet.Accounts.Patient
             //Get the current user's ID:
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            //Add the creator to UsersForTopics:
-            cmd.CommandText = "insert into UsersForTopics (userId, topicId, joined_time) values ('" + userId + "', '" + topicId + "', '"+DateTime.Now+"')";
-            cmd.ExecuteScalar();
             //Check if there is a tag entered:
             if (!string.IsNullOrWhiteSpace(txtTags.Text))
             {
@@ -163,7 +187,29 @@ namespace NephroNet.Accounts.Patient
                 cmd.CommandText = "insert into TagsForTopics (topicId, tagId) values ('" + topicId + "', '" + tagId + "')";
                 cmd.ExecuteScalar();
             }
+            if (drpType.SelectedIndex == 3)//If the consultation topic type is selected:
+            {
 
+                int userIndex = drpFindUser.SelectedIndex;
+                string selectedUser = drpFindUser.SelectedValue;
+                var digits = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ' };
+                string result = selectedUser.TrimStart(digits);
+                int int_roleId = Convert.ToInt32(roleId);
+                if (int_roleId == 2)//If the current user trying to add another user is a physician:
+                {
+                    string temp_userId = consultationUsers[userIndex].ToString();
+                    cmd.CommandText = "insert into Consultations (patient_userId, physician_userId, topicId) values" +
+                    "('" + temp_userId + "', '" + userId + "', '" + topicId + "') ";
+                    cmd.ExecuteScalar();
+                }
+                else if (int_roleId == 3)//If the current user trying to add another user is a patient
+                {
+                    string temp_userId = consultationUsers[userIndex].ToString();
+                    cmd.CommandText = "insert into Consultations (patient_userId, physician_userId, topicId) values" +
+                    "('" + userId + "', '" + temp_userId + "', '" + topicId + "') ";
+                    cmd.ExecuteScalar();
+                }
+            }
             connect.Close();
         }
         protected void storeImagesInServer()
@@ -225,8 +271,9 @@ namespace NephroNet.Accounts.Patient
             //Get the current user's ID:
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            cmd.CommandText = "insert into Topics (topic_createdBy, topic_type, topic_title, topic_time, topic_description, topic_hasImage, topic_isDeleted, topic_isApproved, topic_isDenied, topic_isTerminated) values " +
-                "('" + userId + "', '" + drpType.SelectedValue + "', '" + title + "', '" + entryTime + "', '" + description + "', '" + hasImage + "', '0', '0', '0', '0')";
+            DateTime currentTime = DateTime.Now;
+            cmd.CommandText = "insert into Topics (topic_createdBy, topic_type, topic_title, topic_time, topic_description, topic_hasImage, topic_isDeleted, topic_isApproved, topic_isDenied, topic_isTerminated, topic_createdDate) values " +
+                "('" + userId + "', '" + drpType.SelectedValue + "', '" + title + "', '" + entryTime + "', '" + description + "', '" + hasImage + "', '0', '0', '0', '0', '" + currentTime + "')";
             cmd.ExecuteScalar();
             cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] " +
                 "where topic_createdBy = '" + userId + "' and topic_type like '" + drpType.SelectedValue + "' and topic_title like '" + title + "' "
@@ -235,8 +282,96 @@ namespace NephroNet.Accounts.Patient
                 "' and topic_isDeleted = '0' and topic_isApproved = '0' and topic_isDenied = '0' and topic_isTerminated = '0' " +
                 " ) as t where rowNum = '1'";
             topicId = cmd.ExecuteScalar().ToString();
+
             connect.Close();
             return topicId;
+        }
+        protected void drpType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            drpFindUser.Items.Clear();
+            txtFindUser.Text = "";
+            lblFindUserResult.Text = "";
+            consultationUsers.Clear();
+            if (drpType.SelectedIndex == 3)//3 = Consultation
+            {
+                lblFindUser.Visible = true;
+                txtFindUser.Visible = true;
+                drpFindUser.Visible = true;
+                lblSelectUser.Visible = true;
+                lblFindUserResult.Visible = true;
+                int int_roleId = Convert.ToInt32(roleId);
+                if (int_roleId == 2)
+                {
+                    lblFindUser.Text = "Find patient";
+                    lblSelectUser.Text = "Select patient";
+                }
+                else if (int_roleId == 3)
+                {
+                    lblFindUser.Text = "Find physician";
+                    lblSelectUser.Text = "Select physician";
+                }
+            }
+            else
+            {
+                lblFindUser.Visible = false;
+                txtFindUser.Visible = false;
+                lblFindUserResult.Visible = false;
+                drpFindUser.Visible = false;
+                lblSelectUser.Visible = false;
+            }
+        }
+        protected void drpFindUser_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int userIndex = drpFindUser.SelectedIndex;
+            string selectedUser = drpFindUser.SelectedValue;
+            var digits = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ' };
+            string result = selectedUser.TrimStart(digits);
+            lblFindUserResult.Text = "Selected user: " + (userIndex + 1) + " " + result;
+            lblFindUserResult.Visible = true;
+        }
+        protected void txtFindUser_TextChanged(object sender, EventArgs e)
+        {
+            drpFindUser.Items.Clear();
+            consultationUsers.Clear();
+            int counter = 0;
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select count(user_firstname + ' ' + user_lastname) from Users where (user_firstname + ' ' + user_lastname) like '%" + txtFindUser.Text.Replace("'", "''") + "%'  ";
+            int count = Convert.ToInt32(cmd.ExecuteScalar());
+            for (int i = 1; i <= count; i++)
+            {
+                cmd.CommandText = "select userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname + ' ' + user_lastname) like '%" + txtFindUser.Text.Replace("'", "''") + "%' ) as t where rowNum = '" + i + "'";
+                int temp_userId = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from users where userId = '" + temp_userId + "' ";
+                string temp_user = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select loginId from Users where userId = '" + temp_userId + "' ";
+                int temp_loginId = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select login_isActive from Logins where loginId = '" + temp_loginId + "' ";
+                int temp_isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select roleId from Logins where loginId = '" + temp_loginId + "' ";
+                int temp_roleId = Convert.ToInt32(cmd.ExecuteScalar());
+                int int_loginId = Convert.ToInt32(loginId);
+                int int_roleId = Convert.ToInt32(roleId);
+                if (int_roleId == 2)//If the current user is a physician
+                {
+                    //add the searched user if his/her account is active, he/she is a patient, and not me
+                    if (temp_isActive == 1 && temp_roleId == 3 && temp_loginId != int_loginId)
+                    {
+                        consultationUsers.Add(temp_userId);
+                        drpFindUser.Items.Add(++counter + " " + temp_user);
+                    }
+                }
+                else if (int_roleId == 3)//If the current user is a patient
+                {
+                    //add the searched user if his/her account is active, he/she is a physician, and not me
+                    if (temp_isActive == 1 && temp_roleId == 2 && temp_loginId != int_loginId)
+                    {
+                        consultationUsers.Add(temp_userId);
+                        drpFindUser.Items.Add(++counter + " " + temp_user);
+                    }
+                }
+            }
+            connect.Close();
         }
         protected Boolean checkInput()
         {

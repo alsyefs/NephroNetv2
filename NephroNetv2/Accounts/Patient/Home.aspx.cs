@@ -37,11 +37,34 @@ namespace NephroNet.Accounts.Patient
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
+            //Get from and to pages:
+            string current_page = "", previous_page = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) current_page = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previous_page = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
             CheckPatientSession session = new CheckPatientSession();
-            bool correctSession = session.sessionIsCorrect(username, roleId, token);
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
-            
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
         {
@@ -96,7 +119,7 @@ namespace NephroNet.Accounts.Patient
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
                 HyperLink creatorLink = new HyperLink();
                 creatorLink.Text = creator + " ";
-                creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
+                //creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
                 grdTopics.Rows[row].Cells[5].Controls.Add(creatorLink);
             }
             connect.Close();
@@ -159,7 +182,7 @@ namespace NephroNet.Accounts.Patient
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
                 HyperLink creatorLink = new HyperLink();
                 creatorLink.Text = creator + " ";
-                creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
+                //creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
                 grdTopics.Rows[row].Cells[5].Controls.Add(creatorLink);
             }
             connect.Close();

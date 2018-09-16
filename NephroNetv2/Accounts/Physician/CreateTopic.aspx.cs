@@ -30,10 +30,34 @@ namespace NephroNet.Accounts.Physician
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
+            //Get from and to pages:
+            string current_page = "", previous_page = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) current_page = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previous_page = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
             CheckPhysicianSession session = new CheckPhysicianSession();
-            bool correctSession = session.sessionIsCorrect(username, roleId, token);
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
         {
@@ -174,10 +198,6 @@ namespace NephroNet.Accounts.Physician
                 if(int_roleId == 2)//If the current user trying to add another user is a physician:
                 {
                     string temp_userId = consultationUsers[userIndex].ToString();
-                    ////Get the userId of the patient:
-                    //cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] " +
-                    //    "where (user_firstname + ' ' + user_lastname) like '%"+result+"%' ) as t where rowNum = '1'";
-                    //string user_patientId = cmd.ExecuteScalar().ToString();
                     cmd.CommandText = "insert into Consultations (patient_userId, physician_userId, topicId) values" +
                     "('" + temp_userId + "', '" + userId + "', '" + topicId + "') ";
                     cmd.ExecuteScalar();
@@ -187,6 +207,7 @@ namespace NephroNet.Accounts.Physician
                     string temp_userId = consultationUsers[userIndex].ToString();
                     cmd.CommandText = "insert into Consultations (patient_userId, physician_userId, topicId) values" +
                     "('"+userId+"', '"+ temp_userId + "', '"+topicId+"') ";
+                    cmd.ExecuteScalar();
                 }
             }
             connect.Close();
@@ -280,9 +301,15 @@ namespace NephroNet.Accounts.Physician
                 lblFindUserResult.Visible = true;
                 int int_roleId = Convert.ToInt32(roleId);
                 if (int_roleId == 2)
+                {
                     lblFindUser.Text = "Find patient";
-                else if(int_roleId == 3)
+                    lblSelectUser.Text = "Select patient";
+                }
+                else if (int_roleId == 3)
+                {
                     lblFindUser.Text = "Find physician";
+                    lblSelectUser.Text = "Select physician";
+                }
             }
             else
             {
@@ -305,7 +332,6 @@ namespace NephroNet.Accounts.Physician
         protected void txtFindUser_TextChanged(object sender, EventArgs e)
         {
             drpFindUser.Items.Clear();
-            lblFindUser.Text = "";
             consultationUsers.Clear();
             int counter = 0;
             connect.Open();

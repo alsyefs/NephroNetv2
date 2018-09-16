@@ -23,10 +23,35 @@ namespace NephroNet
             conn = config.getConnectionString();
             connect = new SqlConnection(conn);
             getSession();
-            bool correctSession = sessionIsCorrect(username, roleId, token);
+            //Get from and to pages:
+            string currentPage = "", previousPage = "";
+            if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
+            if (Request.UrlReferrer != null) previousPage = Request.UrlReferrer.ToString();
+            //Get current time:
+            DateTime currentTime = DateTime.Now;
+            //Get user's IP:
+            string userIP = GetIPAddress();
+            Accounts.Admin.CheckAdminSession session = new Accounts.Admin.CheckAdminSession();
+            bool correctSession = session.sessionIsCorrect(username, roleId, token, currentPage, previousPage, currentTime, userIP);
             if (!correctSession)
                 clearSession();
             lblAlerts.Text = "Alerts (" + countTotalAlerts() + ")";
+        }
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
         {
@@ -49,23 +74,6 @@ namespace NephroNet
             roleId = (string)(Session["roleId"]);
             loginId = (string)(Session["loginId"]);
             token = (string)(Session["token"]);
-        }
-        public Boolean sessionIsCorrect(string temp_username, string temp_roleId, string temp_token)
-        {
-            username = temp_username;
-            roleId = temp_roleId;
-            token = temp_token;
-
-            Boolean correctSession = true;
-            Boolean isEmptySession = checkIfSessionIsEmpty();
-            if (isEmptySession)
-                correctSession = false;
-            Boolean correctSessionValues = checkSeesionValues();
-            if (correctSessionValues == false)
-            {
-                correctSession = false;
-            }
-            return correctSession;
         }
         public int countTotalAlerts()
         {            
@@ -98,31 +106,6 @@ namespace NephroNet
             }
             connect.Close();
             return count;
-        }
-        protected Boolean checkSeesionValues()
-        {
-            Boolean correct = true;
-            connect.Open();
-            SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select count(*) from logins where login_username like '" + username + "' and roleId = '" + roleId + "' ";
-            int countValues = Convert.ToInt32(cmd.ExecuteScalar());
-            if (countValues < 1)//session has wrong values for any role.
-                correct = false;
-            cmd.CommandText = "select count(*) from logins where login_username like '" + username + "' and login_token like '" + token + "' and roleId = '" + roleId + "' ";
-            int countTokenValues = Convert.ToInt32(cmd.ExecuteScalar());
-            if (countTokenValues < 1)//session has wrong values for any role with the recieved token.
-                correct = false;
-            connect.Close();
-            return correct;
-        }
-        protected Boolean checkIfSessionIsEmpty()
-        {
-            Boolean itIsEmpty = false;
-            if (string.IsNullOrWhiteSpace(username) || (!roleId.Equals("1")))//if no session values for either username or roleId, set to false.
-            {
-                itIsEmpty = true;
-            }
-            return itIsEmpty;
         }
     }
 }

@@ -4,18 +4,19 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 
+
 namespace NephroNet
 {
     public class CheckSession
     {
         string username = "", roleId = "", token = "";
         Configuration config = new Configuration();
-        public Boolean sessionIsCorrect(string temp_username, string temp_roleId, string temp_token)
+        public Boolean sessionIsCorrect(string temp_username, string temp_roleId, string temp_token, 
+            string currentPage, string previousPage, DateTime currentTime, string userIP)
         {
             username = temp_username;
             roleId = temp_roleId;
             token = temp_token;
-
             Boolean correctSession = true;
             Boolean isEmptySession = checkIfSessionIsEmpty();
             if (isEmptySession)
@@ -25,8 +26,10 @@ namespace NephroNet
             {
                 correctSession = false;
             }
+            Logs log = new Logs(temp_username, temp_roleId, temp_token, currentPage, previousPage, currentTime, userIP);
             return correctSession;
         }
+        
         protected Boolean checkSeesionValues()
         {
             SqlConnection connect = new SqlConnection(config.getConnectionString());

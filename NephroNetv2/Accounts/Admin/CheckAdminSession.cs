@@ -10,7 +10,8 @@ namespace NephroNet.Accounts.Admin
     {
         string username = "", roleId = "", token = "";
         Configuration config = new Configuration();
-        public Boolean sessionIsCorrect(string temp_username, string temp_roleId, string temp_token)
+        public Boolean sessionIsCorrect(string temp_username, string temp_roleId, string temp_token,
+            string currentPage, string previousPage, DateTime currentTime, string userIP)
         {
             username = temp_username;
             roleId = temp_roleId;
@@ -25,6 +26,7 @@ namespace NephroNet.Accounts.Admin
             {
                 correctSession = false;
             }
+            Logs log = new Logs(temp_username, temp_roleId, temp_token, currentPage, previousPage, currentTime, userIP);
             return correctSession;
         }
         public int countTotalAlerts()
