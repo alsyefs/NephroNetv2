@@ -26,6 +26,7 @@ namespace NephroNet.Accounts.Admin
         static string currentPage = "";
         static bool requestedRemoveTopic = false;
         static bool requestedRemoveMessage = false;
+        static bool requestedReportMessage = false;
         protected void Page_Load(object sender, EventArgs e)
         {
             Configuration config = new Configuration();
@@ -60,7 +61,7 @@ namespace NephroNet.Accounts.Admin
             checkIfDeleted();
             if (!IsPostBack)
             {
-                if (!requestedRemoveTopic && !requestedRemoveMessage)
+                if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
                 {
                     if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
                     else currentPage = "Home.aspx";
@@ -189,8 +190,7 @@ namespace NephroNet.Accounts.Admin
         }
         protected void unauthorized()
         {
-            addSession();
-            Response.Redirect("JoinTopic.aspx?id=" + topicId);
+            
         }
         protected string getHeader()
         {
@@ -426,7 +426,7 @@ namespace NephroNet.Accounts.Admin
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            if (!requestedRemoveTopic && !requestedRemoveMessage)
+            if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
             {
                 hideErrorLabels();
                 Boolean correct = checkInput();
@@ -439,6 +439,7 @@ namespace NephroNet.Accounts.Admin
             }
             if (requestedRemoveTopic) requestedRemoveTopic = false;
             if (requestedRemoveMessage) requestedRemoveMessage = false;
+            requestedReportMessage = false;
             clearInputs();
         }
         protected void clearInputs()
@@ -735,6 +736,25 @@ namespace NephroNet.Accounts.Admin
         }
         [WebMethod]
         [ScriptMethod()]
+        public static void reportMessage_Click(string entryId, string current_userId, string complain_text)
+        {
+            requestedReportMessage = true;
+            bool messageIdExists = isMessageCorrect(entryId, current_userId);
+            if (messageIdExists)
+            {
+                Configuration config = new Configuration();
+                SqlConnection connect = new SqlConnection(config.getConnectionString());
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                //insert the new complain into the database:
+                cmd.CommandText = "insert into Complains (entryId, complain_reason, complain_fromUser, complain_time) values " +
+                    "('"+entryId+"', '"+complain_text.Replace("'", "''")+"', '"+current_userId+"', '"+DateTime.Now+"')";
+                cmd.ExecuteScalar();
+                connect.Close();
+            }
+        }
+        [WebMethod]
+        [ScriptMethod()]
         public static void removeMessage_Click(string entryId, string entry_creatorId)
         {
             requestedRemoveMessage = true;
@@ -831,10 +851,11 @@ namespace NephroNet.Accounts.Admin
         protected void goBack()
         {
             addSession();
-            if (!string.IsNullOrWhiteSpace(previousPage))
-                Response.Redirect(previousPage);
-            else
-                Response.Redirect("Home.aspx");
+            requestedRemoveTopic = false;
+            requestedRemoveMessage = false;
+            requestedReportMessage = false;
+            if (!string.IsNullOrWhiteSpace(previousPage)) Response.Redirect(previousPage);
+            else Response.Redirect("Home.aspx");
         }
     }
 }

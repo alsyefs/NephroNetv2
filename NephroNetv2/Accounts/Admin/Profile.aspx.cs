@@ -15,11 +15,26 @@ namespace NephroNet.Accounts.Admin
     {
         static string conn = "";
         SqlConnection connect = new SqlConnection(conn);
+        static string previousPage = "";
+        static string currentPage = "";
+        static bool requestedTerminateOrUnlockAccount = false;
         string username, roleId, loginId, token;
         static string g_loginId = "";
         string profileId = "";
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (!IsPostBack)
+            {
+                if (!requestedTerminateOrUnlockAccount)
+                {
+                    if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
+                    else currentPage = "Home.aspx";
+                    if (Request.UrlReferrer != null) previousPage = Request.UrlReferrer.ToString();
+                    else previousPage = "Home.aspx";
+                    if (currentPage.Equals(previousPage))
+                        previousPage = "Home.aspx";
+                }
+            }
             initialPageAccess();
             profileId = Request.QueryString["id"];
             g_loginId = loginId;
@@ -46,7 +61,7 @@ namespace NephroNet.Accounts.Admin
             if (account_roleId == 2)//2 = Physician
             {
                 connect.Open();
-                cmd.CommandText = "select PhysicianCompleteProfiles_isPrivate from PhysicianCompleteProfiles where userId = '" + profileId + "' ";
+                cmd.CommandText = "select PhysicianCompleteProfile_isPrivate from PhysicianCompleteProfiles where userId = '" + profileId + "' ";
                 int physician_isPrivate = Convert.ToInt32(cmd.ExecuteScalar());
                 connect.Close();
                 if (physician_isPrivate == 0)
@@ -61,7 +76,7 @@ namespace NephroNet.Accounts.Admin
             else if (account_roleId == 3)//3 = Patient
             {
                 connect.Open();
-                cmd.CommandText = "select PatientCompleteProfiles_isPrivate from PatientCompleteProfiles where userId = '" + profileId + "' ";
+                cmd.CommandText = "select patientCompleteProfile_isPrivate from PatientCompleteProfiles where userId = '" + profileId + "' ";
                 int patient_isPrivate = Convert.ToInt32(cmd.ExecuteScalar());
                 connect.Close();
                 if (patient_isPrivate == 0)
@@ -73,8 +88,8 @@ namespace NephroNet.Accounts.Admin
                 else
                     lblRow.Text = "The account you are trying to access is private.";
             }
-            string terminateCommand = "<br/><button id='terminate_button'type='button' onclick=\"terminateAccount('" + profileId + "')\">Terminate Account</button>";
-            string unlockCommand = "<br/><button id='unlock_button'type='button' onclick=\"unlockAccount('" + profileId + "')\">Unlock Account</button>";
+            string terminateCommand = "<button id='terminate_button'type='button' onclick=\"terminateAccount('" + profileId + "')\">Terminate Account</button>";
+            string unlockCommand = "<button id='unlock_button'type='button' onclick=\"unlockAccount('" + profileId + "')\">Unlock Account</button>";
             if (isActive == 1 && account_loginId != loginId)
                 lblAdminCommands.Text += terminateCommand;
             else if (isActive == 0 && account_loginId != loginId)
@@ -258,6 +273,13 @@ namespace NephroNet.Accounts.Admin
         {
             Response.Redirect("Home.aspx");
         }
+        protected void goBack()
+        {
+            addSession();
+            requestedTerminateOrUnlockAccount = false;
+            if (!string.IsNullOrWhiteSpace(previousPage)) Response.Redirect(previousPage);
+            else Response.Redirect("Home.aspx");
+        }
         protected void initialPageAccess()
         {
             Configuration config = new Configuration();
@@ -308,6 +330,12 @@ namespace NephroNet.Accounts.Admin
             Session.Add("loginId", loginId);
             Session.Add("token", token);
         }
+
+        protected void btnCancel_Click(object sender, EventArgs e)
+        {
+            goBack();
+        }
+
         protected void getSession()
         {
             username = (string)(Session["username"]);
@@ -319,6 +347,7 @@ namespace NephroNet.Accounts.Admin
         [ScriptMethod()]
         public static void terminateOrUnlockAccount(string in_profileId, int terminateOrUnlock)
         {
+            requestedTerminateOrUnlockAccount = true;
             Configuration config = new Configuration();
             SqlConnection connect = new SqlConnection(config.getConnectionString());
             bool accountIdExists = isAccountCorrect(in_profileId, terminateOrUnlock);

@@ -229,23 +229,6 @@ namespace NephroNet.Accounts.Admin
             //Get the user ID of the user who was just added:
             cmd.CommandText = "select userId from users where loginId = '"+newLoginId+"' ";
             string temp_userId = cmd.ExecuteScalar().ToString();
-            //Store the user's information into the "ShortProfiles" table:
-            cmd.CommandText = "insert into ShortProfiles (userId,shortProfile_firstname, shortProfile_lastname, shortProfile_roleId) values " +
-                "('" + temp_userId + "', '" + g_firstName + "', '" + g_lastName + "', '" + g_roleId + "') ";
-            cmd.ExecuteScalar();
-            //Store the user's ID into the "CompleteProfiles" table:
-            cmd.CommandText = "insert into CompleteProfiles (userId, completeProfile_city, completeProfile_state, completeProfile_zip, completeProfile_address, completeProfile_country) values " +
-                "('" + temp_userId + "', '" + g_city + "', '" + g_state + "', '" + g_zip + "', '"+ g_address + "', '"+g_country+"') ";
-            cmd.ExecuteScalar();
-            //Get the complete profile ID:
-            cmd.CommandText = "select completeProfileId from CompleteProfiles where userId = '"+temp_userId+"' ";
-            string completeProfileId = cmd.ExecuteScalar().ToString();
-            //Store the email in Emails table:
-            cmd.CommandText = "insert into Emails (completeProfileId, email_emailAddress, email_isDefault) values ('" + completeProfileId+"', '"+g_email+"', 1) ";
-            cmd.ExecuteScalar();
-            //Store the phone number in PhoneNumbers table:
-            cmd.CommandText = "insert into PhoneNumbers (completeProfileId, phonenumber_phone, phonenumber_isDefault) values ('" + completeProfileId + "', '" + g_phone + "', 1) ";
-            cmd.ExecuteScalar();
             connect.Close();
             //Create an email message to be sent:
             string emailMessage = "Hello "+g_firstName + " " + g_lastName + ",\n\n"+

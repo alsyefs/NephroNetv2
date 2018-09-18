@@ -79,20 +79,34 @@ namespace NephroNet
             connect.Close();
             return deleted;
         }
+        static protected string getTopicType(string topicId)
+        {
+            string topic_type = "";
+            Configuration config = new Configuration();
+            SqlConnection connect = new SqlConnection(config.getConnectionString());
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+            topic_type = cmd.ExecuteScalar().ToString();
+            connect.Close();
+            return topic_type;
+        }
         public static string postMessage(int i, string creator_name, string entry_time, string entry_text, string imagesHtml, 
 			string entry_creatorId, string topic_creatorId, string userId, string entryId, string roleId, string topicId)
 		{
 			string deleteCommand = "";
+            string complainCommand = "";
             //Check if the user viewing the message is the creator, or if the current user viewing is an admin:
             int int_roleId = Convert.ToInt32(roleId);
             if (entry_creatorId.Equals(userId) || int_roleId == 1)
-            //deleteCommand = "&nbsp;<asp:Button ID="btnRemove" runat="server" Text="Remove Entry " + i" OnClick="btnRemove_Click" onmousedown=\"OpenPopup('RemoveEntry.aspx?id=" + entryId + "') onchange='__doPostBack('<%=panelAttachments.UniqueID %>',''); return false;\"> + "</button><br/>";
             {
-                deleteCommand = "&nbsp;<button id='remove_button' type='button' onmousedown=\"OpenPopup('RemoveEntry.aspx?id=" + entryId + "')\">Remove Entry " + i + "</button><br/>";
-                deleteCommand = "&nbsp;<button id='remove_button' type='button' onclick=\"removeMessage('" + entryId + "', "+i+", '"+ entry_creatorId + "', '"+topicId+"')\">Remove Entry " + i + "</button><br/>";
+                deleteCommand = "&nbsp;<button id='remove_button' type='button' onclick=\"removeMessage('" + entryId + "', "+i+", '"+ entry_creatorId + "', '"+topicId+"')\">Remove Message " + i + "</button>";
             }
+            string topic_type = getTopicType(topicId);
+            if(!topic_type.Equals("Consultation"))
+                complainCommand = "&nbsp;<button id='complain_button' type='button' onclick=\"complain('" + entryId + "', '" + i + "', '" + userId + "')\">Report Message " + i + "</button><br/>";
             string profileLink = creator_name;
-            if(int_roleId == 1)
+                if (int_roleId == 1)
             {
                 profileLink = "<a href=\"Profile.aspx?id=" + entry_creatorId + "\"> " + creator_name + "</a>";
             }
@@ -118,6 +132,7 @@ namespace NephroNet
 						imagesHtml +
                         "</div> " +
 					deleteCommand +
+                    complainCommand +
                     "</div><br />";
 			return message;
 		}

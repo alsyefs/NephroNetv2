@@ -136,6 +136,7 @@
     <Content Include="About.aspx" />
     <Content Include="Accounts\Admin\About.aspx" />
     <Content Include="Accounts\Admin\Account.aspx" />
+    <Content Include="Accounts\Admin\ApproveComplains.aspx" />
     <Content Include="Accounts\Admin\ApproveMessages.aspx" />
     <Content Include="Accounts\Admin\ApproveTopics.aspx" />
     <Content Include="Accounts\Admin\ApproveUsers.aspx" />
@@ -144,12 +145,11 @@
     <Content Include="Accounts\Admin\ChangeSecurityQuestions.aspx" />
     <Content Include="Accounts\Admin\CreateTopic.aspx" />
     <Content Include="Accounts\Admin\Home.aspx" />
-    <Content Include="Accounts\Admin\JoinTopic.aspx" />
-    <Content Include="Accounts\Admin\MyTopics.aspx" />
     <Content Include="Accounts\Admin\Notifications.aspx" />
     <Content Include="Accounts\Admin\Profile.aspx" />
     <Content Include="Accounts\Admin\RemoveEntry.aspx" />
     <Content Include="Accounts\Admin\RemoveTopic.aspx" />
+    <Content Include="Accounts\Admin\ReviewComplain.aspx" />
     <Content Include="Accounts\Admin\ReviewMessage.aspx" />
     <Content Include="Accounts\Admin\ReviewTopic.aspx" />
     <Content Include="Accounts\Admin\ReviewUser.aspx" />
@@ -165,7 +165,6 @@
     <Content Include="Accounts\Patient\Contact.aspx" />
     <Content Include="Accounts\Patient\CreateTopic.aspx" />
     <Content Include="Accounts\Patient\Home.aspx" />
-    <Content Include="Accounts\Patient\JoinTopic.aspx" />
     <Content Include="Accounts\Patient\MyProfile.aspx" />
     <Content Include="Accounts\Patient\MyTopics.aspx" />
     <Content Include="Accounts\Patient\Notifications.aspx" />
@@ -180,7 +179,6 @@
     <Content Include="Accounts\Physician\Contact.aspx" />
     <Content Include="Accounts\Physician\CreateTopic.aspx" />
     <Content Include="Accounts\Physician\Home.aspx" />
-    <Content Include="Accounts\Physician\JoinTopic.aspx" />
     <Content Include="Accounts\Physician\MyProfile.aspx" />
     <Content Include="Accounts\Physician\MyTopics.aspx" />
     <Content Include="Accounts\Physician\Notifications.aspx" />
@@ -303,6 +301,13 @@
     <Compile Include="Accounts\Admin\Account.aspx.designer.cs">
       <DependentUpon>Account.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Accounts\Admin\ApproveComplains.aspx.cs">
+      <DependentUpon>ApproveComplains.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\Admin\ApproveComplains.aspx.designer.cs">
+      <DependentUpon>ApproveComplains.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Accounts\Admin\ApproveMessages.aspx.cs">
       <DependentUpon>ApproveMessages.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -360,20 +365,6 @@
     <Compile Include="Accounts\Admin\Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Accounts\Admin\JoinTopic.aspx.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Accounts\Admin\JoinTopic.aspx.designer.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Accounts\Admin\MyTopics.aspx.cs">
-      <DependentUpon>MyTopics.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Accounts\Admin\MyTopics.aspx.designer.cs">
-      <DependentUpon>MyTopics.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Accounts\Admin\Notifications.aspx.cs">
       <DependentUpon>Notifications.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -401,6 +392,13 @@
     </Compile>
     <Compile Include="Accounts\Admin\RemoveTopic.aspx.designer.cs">
       <DependentUpon>RemoveTopic.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\Admin\ReviewComplain.aspx.cs">
+      <DependentUpon>ReviewComplain.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\Admin\ReviewComplain.aspx.designer.cs">
+      <DependentUpon>ReviewComplain.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\Admin\ReviewMessage.aspx.cs">
       <DependentUpon>ReviewMessage.aspx</DependentUpon>
@@ -510,13 +508,6 @@
     <Compile Include="Accounts\Patient\Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Accounts\Patient\JoinTopic.aspx.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Accounts\Patient\JoinTopic.aspx.designer.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Accounts\Patient\MyProfile.aspx.cs">
       <DependentUpon>MyProfile.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -616,13 +607,6 @@
     </Compile>
     <Compile Include="Accounts\Physician\Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Accounts\Physician\JoinTopic.aspx.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Accounts\Physician\JoinTopic.aspx.designer.cs">
-      <DependentUpon>JoinTopic.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\Physician\MyProfile.aspx.cs">
       <DependentUpon>MyProfile.aspx</DependentUpon>

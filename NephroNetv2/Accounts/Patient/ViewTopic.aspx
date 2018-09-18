@@ -100,7 +100,49 @@
                     }
 
                 </script>
-
+                <script type="text/javascript">
+                    function complain(messageId, messageNumberInPage, userId) {
+                        console.log('started complaining');
+                        var message_text = prompt('Please enter your reason for reporting the selected message entry# (' + messageNumberInPage + '):');
+                        if (message_text == null || message_text == "") {
+                            if (confirm("You have not typed a reason. Do you still wish to submit a report without a reason?"))
+                                complainAboutMessage(messageId, userId, "There is no specific reason");
+                        }else {
+                            complainAboutMessage(messageId, userId, message_text);
+                        }
+                    }
+                    </script>
+                <script type="text/javascript">
+                    function complainAboutMessage(messageId, userId, message_text) {
+                        console.log('You just confirmed!');
+                        var messageID = parseInt(messageId);
+                        var userID = parseInt(userId);
+                        var obj = {
+                            entryId: messageID,
+                            current_userId: userID,
+                            complain_text: message_text
+                        };
+                        console.log('ok, we will send the complain');
+                        var param = JSON.stringify(obj);  // stringify the parameter
+                        $.ajax({
+                            method: "POST",
+                            url: '<%= ResolveUrl("ViewTopic.aspx/reportMessage_Click") %>',
+                            data: param,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: true,
+                            cache: false,
+                            success: function (msg) {
+                                console.log('Successfully reported message ID: ' + messageId + '!');
+                                location.reload(true);
+                            },
+                            error: function (xhr, status, error) {
+                                console.log('The call failed to report the message ID: ' + messageId);
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    }
+                </script>
                 <script type="text/javascript">
                     function removeTopic(topicId, creatorId) {
                         if (confirm('Are sure you want to remove the selected topic?'))
@@ -141,9 +183,9 @@
                     }
 
                 </script>
+                
                 <script type="text/javascript">
                     function removeMessage(messageId, messageNumberInPage, creatorId) {
-
                         if (confirm('Are sure you want to remove the selected message entry# (' + messageNumberInPage + ')?'))
                             removeMessageConfirmed(messageId, creatorId);
                     }
@@ -178,6 +220,7 @@
                     }
 
                 </script>
+                
                 <%--Popup message--%>
                 <script type="text/javascript">
                     function OpenPopup(site) {popup(site);}

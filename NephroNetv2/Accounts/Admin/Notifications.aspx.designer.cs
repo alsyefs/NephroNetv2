@@ -67,6 +67,24 @@ namespace NephroNet.Accounts.Admin {
         protected global::System.Web.UI.WebControls.Button btnNewMessages;
         
         /// <summary>
+        /// lblNewComplains control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblNewComplains;
+        
+        /// <summary>
+        /// btnNewComplains control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnNewComplains;
+        
+        /// <summary>
         /// lblError control.
         /// </summary>
         /// <remarks>

@@ -284,7 +284,7 @@ namespace NephroNet.Accounts.Patient
                 string creatorId = cmd.ExecuteScalar().ToString();
                 HyperLink creatorLink = new HyperLink();
                 creatorLink.Text = creator + " ";
-                creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
+                //creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
                 grdResults.Rows[row].Cells[4].Controls.Add(creatorLink);
                 //Set the title's link
                 title = grdResults.Rows[row].Cells[0].Text;
@@ -292,7 +292,7 @@ namespace NephroNet.Accounts.Patient
                 id = cmd.ExecuteScalar().ToString();
                 HyperLink topicLink = new HyperLink();
                 topicLink.Text = title + " ";
-                topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
+                //topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
                 grdResults.Rows[row].Cells[0].Controls.Add(topicLink);
             }
             connect.Close();

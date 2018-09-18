@@ -19,7 +19,13 @@
                             </div>
                         </div>
                         <%--Table end--%>
-                <asp:Label ID="lblAdminCommands" runat="server" Text=" "></asp:Label>
+                <table>
+                    <tr>
+                <td><asp:Label ID="lblAdminCommands" runat="server" Text=" "></asp:Label></td>
+                        <td style="width:200px;"> </td>
+                <td><asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Width="140px" OnClick="btnCancel_Click" /></td>
+                        </tr>
+                    </table>
                 <script type="text/javascript">
                     function terminateAccount(userId) {
                         console.log('started terminateAccount');

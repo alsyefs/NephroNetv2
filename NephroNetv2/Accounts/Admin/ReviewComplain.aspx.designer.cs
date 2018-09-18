@@ -7,28 +7,37 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NephroNet.Accounts.Patient {
+namespace NephroNet.Accounts.Admin {
     
     
-    public partial class JoinTopic {
+    public partial class ReviewComplain {
         
         /// <summary>
-        /// lblTopic control.
+        /// lblComplainInformation control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblTopic;
+        protected global::System.Web.UI.WebControls.Label lblComplainInformation;
         
         /// <summary>
-        /// btnRequest control.
+        /// btnApprove control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnRequest;
+        protected global::System.Web.UI.WebControls.Button btnApprove;
+        
+        /// <summary>
+        /// btnDeny control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnDeny;
         
         /// <summary>
         /// btnCancel control.
@@ -40,12 +49,12 @@ namespace NephroNet.Accounts.Patient {
         protected global::System.Web.UI.WebControls.Button btnCancel;
         
         /// <summary>
-        /// lblError control.
+        /// lblMessage control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblError;
+        protected global::System.Web.UI.WebControls.Label lblMessage;
     }
 }

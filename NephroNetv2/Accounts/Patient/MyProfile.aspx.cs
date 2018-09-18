@@ -81,9 +81,9 @@ namespace NephroNet.Accounts.Patient
         }
         protected void showInformation()
         {
-            getCompleteProfileInformation();
-            getEditCompleteProfileInformation();
-            viewProfiles();
+            //getCompleteProfileInformation();
+            //getEditCompleteProfileInformation();
+            //viewProfiles();
         }
         //public override void VerifyRenderingInServerForm(Control control) { }
         //Methods to show and hide controls

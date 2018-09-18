@@ -85,8 +85,7 @@ namespace NephroNet
             //count topics to be approved:
             cmd.CommandText = "select count(*) from Topics where topic_isApproved = 0 and topic_isDenied = 0 and topic_isTerminated = 0";
             count = count + Convert.ToInt32(cmd.ExecuteScalar());
-            //count messages to be approved:
-            //count messages that are not approved and have not been denied.
+            //count messages to be approved by counting the messages that are not approved and have not been denied:
             cmd.CommandText = "select count(*) from [Entries] where entry_isApproved = 0 and entry_isDenied = 0 and entry_isDeleted = 0";
             int totalCount = Convert.ToInt32(cmd.ExecuteScalar());
             for (int i = 1; i <= totalCount; i++)
@@ -104,6 +103,9 @@ namespace NephroNet
                 if (topic_isDeleted == 0 && topic_isTerminated == 0)
                     count++;
             }
+            //Count reports about messages:
+            cmd.CommandText = "select count(*) from complains";
+            count = count + Convert.ToInt32(cmd.ExecuteScalar());
             connect.Close();
             return count;
         }

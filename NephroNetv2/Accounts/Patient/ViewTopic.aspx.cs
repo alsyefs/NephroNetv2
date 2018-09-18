@@ -26,12 +26,13 @@ namespace NephroNet.Accounts.Patient
         string topicId = "";
         static bool requestedRemoveTopic = false;
         static bool requestedRemoveMessage = false;
+        static bool requestedReportMessage = false;
         protected void Page_Load(object sender, EventArgs e)
         {
             
             if (!IsPostBack)
             {
-                if (!requestedRemoveTopic && !requestedRemoveMessage)
+                if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
                 {
                     if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
                     else currentPage = "Home.aspx";
@@ -110,10 +111,6 @@ namespace NephroNet.Accounts.Patient
                 else
                     goBack();
             }
-        }
-        protected void Timer1_Tick(object sender, EventArgs e)
-        {
-
         }
         protected bool isTopicApproved()
         {
@@ -227,8 +224,7 @@ namespace NephroNet.Accounts.Patient
         }
         protected void unauthorized()
         {
-            addSession();
-            Response.Redirect("JoinTopic.aspx?id=" + topicId);
+            
         }
         protected string getHeader()
         {
@@ -491,7 +487,7 @@ namespace NephroNet.Accounts.Patient
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            if (!requestedRemoveTopic && !requestedRemoveMessage)
+            if (!requestedRemoveTopic && !requestedRemoveMessage &&!requestedReportMessage)
             {
                 hideErrorLabels();
                 Boolean correct = checkInput();
@@ -502,8 +498,9 @@ namespace NephroNet.Accounts.Patient
                     sendEmail();
                 }
             }
-            if (requestedRemoveTopic) requestedRemoveTopic = false;
-            if (requestedRemoveMessage) requestedRemoveMessage = false;
+            requestedRemoveTopic = false;
+            requestedRemoveMessage = false;
+            requestedReportMessage = false;
             clearInputs();
         }
         protected void clearInputs()
@@ -700,8 +697,9 @@ namespace NephroNet.Accounts.Patient
         protected void goBack()
         {
             addSession();
-            if (requestedRemoveTopic) requestedRemoveTopic = false;
-            if (requestedRemoveMessage) requestedRemoveMessage = false;
+            requestedRemoveTopic = false;
+            requestedRemoveMessage = false;
+            requestedReportMessage = false;
             if (!string.IsNullOrWhiteSpace(previousPage)) Response.Redirect(previousPage);
             else Response.Redirect("Home.aspx");
         }
@@ -814,6 +812,25 @@ namespace NephroNet.Accounts.Patient
                 connect.Close();
             }
             return correct;
+        }
+        [WebMethod]
+        [ScriptMethod()]
+        public static void reportMessage_Click(string entryId, string current_userId, string complain_text)
+        {
+            requestedReportMessage = true;
+            bool messageIdExists = isMessageCorrect(entryId, current_userId);
+            if (messageIdExists)
+            {
+                Configuration config = new Configuration();
+                SqlConnection connect = new SqlConnection(config.getConnectionString());
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                //insert the new complain into the database:
+                cmd.CommandText = "insert into Complains (entryId, complain_reason, complain_fromUser, complain_time) values " +
+                    "('" + entryId + "', '" + complain_text.Replace("'", "''") + "', '" + current_userId + "', '" + DateTime.Now + "')";
+                cmd.ExecuteScalar();
+                connect.Close();
+            }
         }
         [WebMethod]
         [ScriptMethod()]

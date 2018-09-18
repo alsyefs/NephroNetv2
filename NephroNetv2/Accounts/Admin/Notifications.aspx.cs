@@ -20,6 +20,7 @@ namespace NephroNet.Accounts.Admin
             countNewUsers();
             countNewTopics();
             countNewMessages();
+            countNewComplains();
         }
         protected void initialPageAccess()
         {
@@ -93,6 +94,7 @@ namespace NephroNet.Accounts.Admin
             btnNewUsers.Visible = true;
             btnNewTopics.Visible = true;
             btnNewMessages.Visible = true;
+            btnNewComplains.Visible = true;
         }
         protected void countNewUsers()
         {
@@ -190,10 +192,31 @@ namespace NephroNet.Accounts.Admin
             }
             connect.Close();
         }
-        protected void btnNewJoinTopicRequests_Click(object sender, EventArgs e)
+        protected void countNewComplains()
         {
-            addSession();
-            Response.Redirect("ApproveJoinTopics");
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select count(*) from [Complains] ";
+            int count = Convert.ToInt32(cmd.ExecuteScalar());
+            if (count == 0)
+            {
+                lblNewComplains.Text = "There are no new complains to review.";
+                btnNewComplains.Visible = false;
+                //lblNewTopics.Visible = false;
+            }
+            else if (count == 1)
+            {
+                lblNewComplains.Text = "There is one new complains to review.";
+                btnNewComplains.Visible = true;
+                lblNewComplains.Visible = true;
+            }
+            else
+            {
+                lblNewComplains.Text = "There are " + count + " new complains to review.";
+                btnNewComplains.Visible = true;
+                lblNewComplains.Visible = true;
+            }
+            connect.Close();
         }
         protected void btnNewUsers_Click(object sender, EventArgs e)
         {
@@ -210,6 +233,12 @@ namespace NephroNet.Accounts.Admin
             addSession();
             Response.Redirect("ApproveMessages");
         }
-       
+        protected void btnNewComplains_Click(object sender, EventArgs e)
+        {
+            addSession();
+            Response.Redirect("ApproveComplains");
+        }
+
+
     }
 }
