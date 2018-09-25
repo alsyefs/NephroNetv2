@@ -194,6 +194,7 @@
     <Content Include="Content\bootstrap-reboot.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\HIPPA_regulations.txt" />
     <Content Include="Content\Site.css" />
     <Content Include="CreateSecurityQuestions.aspx" />
     <Content Include="Default.aspx" />

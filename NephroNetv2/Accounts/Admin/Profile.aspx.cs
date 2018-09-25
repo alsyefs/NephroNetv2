@@ -88,6 +88,15 @@ namespace NephroNet.Accounts.Admin
                 else
                     lblRow.Text = "The account you are trying to access is private.";
             }
+            else //This account you are trying to access belongs to an admin
+            {
+                if (account_loginId == loginId)
+                {
+                    lblRow.Text = "This account belongs to you as an admin in the system";
+                }
+                else //Another admin
+                    lblRow.Text = "This account belongs to admin in the system";
+            }
             string terminateCommand = "<button id='terminate_button'type='button' onclick=\"terminateAccount('" + profileId + "')\">Terminate Account</button>";
             string unlockCommand = "<button id='unlock_button'type='button' onclick=\"unlockAccount('" + profileId + "')\">Unlock Account</button>";
             if (isActive == 1 && account_loginId != loginId)
@@ -97,147 +106,115 @@ namespace NephroNet.Accounts.Admin
         }
         protected void getPhysicianCompleteProfileInformation(string id)
         {
-
-        }
-        protected void getPatientCompleteProfileInformation(string id)
-        {
-            string newLine = "<br/>";
+            string row = "";
+            lblRow.Text = "";
             string col_start = "<td>", col_end = "</td>", row_start = "<tr>", row_end = "</tr>";
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            CompleteProfile completeProfile = new CompleteProfile(userId, profileId);
-            string completeProfileId = completeProfile.Id;
-            if (!string.IsNullOrWhiteSpace(completeProfileId))
+            connect.Close();
+            PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, id);
+            string completeProfileId = completeProfile.ID;
+            int isPrivate = completeProfile.Private;
+            if (isPrivate == 1)
             {
-                string onDialysis = completeProfile.OnDialysis;
-                string kidneyDisease = completeProfile.KidneyDisease;
-                string issueDate = completeProfile.IssueStartDate;
-                string bloodType = completeProfile.BloodType;
-                string address = completeProfile.Address + newLine + "  " + completeProfile.City + ", " + completeProfile.State + " " + completeProfile.Zip;
-                int counter = 0;
-                string row = "";
-                row += row_start + col_start + col_end + col_start + col_end + row_end;
-                row += row_start + col_start + col_end + col_start + col_end + row_end;
-                row += row_start + col_start + "Complete Profile Information: " + col_end + row_end;
-                if (!string.IsNullOrWhiteSpace(onDialysis))
-                    row += row_start + col_start + "On dialysis: " + col_end + col_start + onDialysis + col_end + row_end;
-                if (!string.IsNullOrWhiteSpace(kidneyDisease))
-                    row += row_start + col_start + "Kidney disease stage: " + col_end + col_start + kidneyDisease + col_end + row_end;
-                if (!string.IsNullOrWhiteSpace(issueDate))
-                    row += row_start + col_start + "Health issue started on: " + col_end + col_start + issueDate + col_end + row_end;
-                if (!string.IsNullOrWhiteSpace(bloodType))
-                    row += row_start + col_start + "Blood type: " + col_end + col_start + bloodType + col_end + row_end;
-                row += row_start + col_start + "Address: " + col_end + col_start + address + col_end + row_end;
-                List<Insurance> insurances = completeProfile.Insurances;
-                if (insurances.Count > 0)
-                    row += row_start + col_start + "Insurances: " + col_end + col_start + col_end + row_end;
-                foreach (Insurance ins in insurances)
-                {
-                    row += row_start + col_start + "Insurance #:" + col_end + col_start + ++counter + col_end + row_end;
-                    row += row_start + col_start + "Member ID:" + col_end + col_start + ins.MemberId + col_end + row_end;
-                    row += row_start + col_start + "Group ID:" + col_end + col_start + ins.GroupId + col_end + row_end;
-                    row += row_start + col_start + "Insurance name: " + col_end + col_start + ins.CompanyName + col_end + row_end;
-                    row += row_start + col_start + "Insurance phone1 : " + col_end + col_start + ins.Phone1 + col_end + row_end;
-                    row += row_start + col_start + "Insurance phone2 : " + col_end + col_start + ins.Phone2 + col_end + row_end;
-                    row += row_start + col_start + "Insurance email: " + col_end + col_start + ins.Phone2 + col_end + row_end;
-                    row += row_start + col_start + "Insurance address: " + col_end + col_start +
-                        ins.Address + newLine + ins.City + ", " + ins.State + " " + ins.Zip + newLine + ins.Country +
-                        col_end + row_end;
-                }
-                ArrayList allergies = completeProfile.Allergies;
-                if (allergies.Count > 0)
-                    row += row_start + col_start + "Allergies: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (var a in allergies)
-                    row += row_start + col_start + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-                ArrayList majorDiagnoses = completeProfile.MajorDiagnoses;
-                if (majorDiagnoses.Count > 0)
-                    row += row_start + col_start + "Major diagnoses: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (var a in majorDiagnoses)
-                    row += row_start + col_start + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-                ArrayList pastHealthConditions = completeProfile.PastHealthConditions;
-                if (pastHealthConditions.Count > 0)
-                    row += row_start + col_start + "Past health conditions: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (var a in pastHealthConditions)
-                    row += row_start + col_start + "" + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-                List<EmailObject> emails = completeProfile.Emails;
-                if (emails.Count > 0)
-                    row += row_start + col_start + "Emails: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (EmailObject e in emails)
-                {
-                    row += row_start + col_start + "" + col_end + col_start + ++counter + ". Email Address: " + e.EmailAddress;
-                    if (e.IsDefault == 1)
-                        row += " (default)" + col_end + row_end;
-                    else
-                        row += col_end + row_end;
-                }
-                List<Phone> phones = completeProfile.Phones;
-                if (phones.Count > 0)
-                    row += row_start + col_start + "Phone numbers: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (Phone e in phones)
-                {
-                    row += row_start + col_start + "" + col_end + col_start + ++counter + ". Phone number: " + e.PhoneNumber;
-                    if (e.IsDefault == 1)
-                        row += " (default)" + col_end + row_end;
-                    else
-                        row += col_end + row_end;
-                }
-                List<EmergencyContact> emergnecyContacts = completeProfile.EmergencyContacts;
-                if (emergnecyContacts.Count > 0)
-                    row += row_start + col_start + "Emergency contacts: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                foreach (EmergencyContact e in emergnecyContacts)
-                {
-                    row += row_start + col_start + "Contact #:" + col_end + col_start + ++counter + col_end + row_end;
-                    row += row_start + col_start + "Name: " + col_end + col_start + e.Firstname + " " + e.Lastname + col_end + row_end;
-                    row += row_start + col_start + "Phone 1: " + col_end + col_start + e.Phone1 + col_end + row_end;
-                    row += row_start + col_start + "Phone 2: " + col_end + col_start + e.Phone2 + col_end + row_end;
-                    row += row_start + col_start + "Phone 3: " + col_end + col_start + e.Phone3 + col_end + row_end;
-                    row += row_start + col_start + "Email: " + col_end + col_start + e.Email + col_end + row_end;
-                    row += row_start + col_start + "Address: " + col_end + col_start +
-                        e.Address + newLine + e.City + ", " + e.State + " " + e.Zip + newLine + e.Country +
-                        col_end + row_end;
-                }
-                List<PastPatientID> pastPatientIds = completeProfile.PastPatientIds;
-                if (pastPatientIds.Count > 0)
-                    row += row_start + col_start + "Past patient IDs: " + col_end + col_start + col_end + row_end;
-                counter = 0;
-                int treatment_count = 0;
-                foreach (PastPatientID p in pastPatientIds)
-                {
-                    //row += row_start + col_start + "" + col_end + col_start + "" + col_end + row_end;
-                    row += row_start + col_start + "Medical Record Number: " + col_end + col_start + p.MRN + col_end + row_end;
-                    List<Treatment> treatments = completeProfile.Treatments;
-                    string str_treatments = "";
-                    if (treatments.Count > 0)
-                    {
-                        str_treatments = "Treatments: " + newLine;
-                    }
-                    foreach (Treatment t in treatments)
-                    {
-                        if (t.PastPatientId.Equals(p.ID))
-                        {
-                            row += row_start + col_start + "Treatment #: " + col_end + col_start + ++treatment_count + col_end + row_end;
-                            row += row_start + col_start + "Physician name: " + col_end + col_start + t.PhysicianFirstName + " " + t.PhysicianLastName + col_end + row_end;
-                            row += row_start + col_start + "Treatment started on: " + col_end + col_start + t.StartDate + col_end + row_end;
-                            row += row_start + col_start + "Hospital name: " + col_end + col_start + t.HospitalName + col_end + row_end;
-                            row += row_start + col_start + "Hospital address: " + col_end + col_start +
-                                t.HospitalAddress + newLine +
-                                t.HospitalCity + ", " + t.HospitalState + " " + t.HospitalZip + newLine +
-                                t.HospitalCountry +
-                                col_end + row_end;
-                        }
-                    }
-                }
+                row += row_start + col_start + "This physician complete profile information is private " + col_end + row_end;
+                lblRow.Text += row;
+                lblRow.ForeColor = System.Drawing.Color.Red;
+            }
+            else
+            {
+                lblRow.ForeColor = System.Drawing.Color.Black;
+                string dialysis = completeProfile.Dialysis;
+                string homeDialysis = completeProfile.HomeDialysis;
+                string transplantation = completeProfile.Transplantation;
+                string hypertension = completeProfile.Hypertension;
+                string gN = completeProfile.GN;
+                string physicianId = completeProfile.PhysicianID;
+                string str_isPrivate = "";
+                if (isPrivate == 1)
+                    str_isPrivate = "Private";
+                else
+                    str_isPrivate = "Viewable by Admins";
+                row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
+                row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(dialysis))
+                    row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(homeDialysis))
+                    row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(transplantation))
+                    row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(hypertension))
+                    row += row_start + col_start + "Hypertension: " + col_end + col_start + hypertension + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(gN))
+                    row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(physicianId))
+                    row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
                 lblRow.Text += row;
             }
+        }
+        protected void getPatientCompleteProfileInformation(string id)
+        {
+            string row = "";
+            lblRow.Text = "";
+            string col_start = "<td>", col_end = "</td>", row_start = "<tr>", row_end = "</tr>";
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+            string userId = cmd.ExecuteScalar().ToString();
             connect.Close();
+            PatientCompleteProfile completeProfile = new PatientCompleteProfile(userId, id);
+            string completeProfileId = completeProfile.ID;
+            int isPrivate = completeProfile.Private;
+            if (isPrivate == 1)
+            {
+                row += row_start + col_start + "This patient complete profile information is private " + col_end + row_end;
+                lblRow.Text += row;
+                lblRow.ForeColor = System.Drawing.Color.Red;
+            }
+            else
+            {
+                lblRow.ForeColor = System.Drawing.Color.Black;
+                string highBloodPressure = completeProfile.HighBloodPressure;
+                string diabetes = completeProfile.Diabetes;
+                string kidneyTransplant = completeProfile.KidneyTransplant;
+                string dialysis = completeProfile.Dialysis;
+                string kidneyStone = completeProfile.KidneyStone;
+                string kidneyInfection = completeProfile.KidneyInfection;
+                string heartFailure = completeProfile.HeartFailure;
+                string cancer = completeProfile.Cancer;
+                string comments = completeProfile.Comments;
+                string patientId = completeProfile.PatientID;
+                string str_isPrivate = "";
+                if (isPrivate == 1)
+                    str_isPrivate = "Private";
+                else
+                    str_isPrivate = "Viewable by Admins";
+                row += row_start + col_start + "Patient Complete Profile Information: " + col_end + row_end;
+                row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(highBloodPressure))
+                    row += row_start + col_start + "High Blood Pressure: " + col_end + col_start + highBloodPressure + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(diabetes))
+                    row += row_start + col_start + "Diabetes: " + col_end + col_start + diabetes + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(kidneyTransplant))
+                    row += row_start + col_start + "Kidney Transplant: " + col_end + col_start + kidneyTransplant + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(dialysis))
+                    row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(kidneyStone))
+                    row += row_start + col_start + "Kidney Stone: " + col_end + col_start + kidneyStone + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(kidneyInfection))
+                    row += row_start + col_start + "Kidney Infection: " + col_end + col_start + kidneyInfection + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(heartFailure))
+                    row += row_start + col_start + "Heart Failure: " + col_end + col_start + heartFailure + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(cancer))
+                    row += row_start + col_start + "Cancer: " + col_end + col_start + cancer + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(comments))
+                    row += row_start + col_start + "Comments: " + col_end + col_start + comments + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(patientId))
+                    row += row_start + col_start + "Patient ID: " + col_end + col_start + patientId + col_end + row_end;
+                lblRow.Text += row;
+            }
         }
         protected bool isUserCorrect()
         {

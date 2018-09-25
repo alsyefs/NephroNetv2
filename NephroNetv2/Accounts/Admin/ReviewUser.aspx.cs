@@ -16,26 +16,42 @@ namespace NephroNet.Accounts.Admin
         string username, roleId, loginId, token;
         string registerId = "";
         //Globals for "Users" table:
-        string g_firstName, g_lastName, g_email, g_city, g_state, g_zip, g_address, g_phone, g_patientId, g_country;
+        string g_firstName, g_lastName, g_email, g_city, g_state, g_zip, g_address, g_phone, g_patientOrPhysicianId, g_country;
         //Globals for "Logins" table:
         int g_roleId;
+        static string previousPage = "";
+        static string currentPage = "";
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (!IsPostBack)
+            {
+                if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
+                else currentPage = "Home.aspx";
+                if (Request.UrlReferrer != null) previousPage = Request.UrlReferrer.ToString();
+                else previousPage = "Home.aspx";
+                if (currentPage.Equals(previousPage))
+                    previousPage = "Home.aspx";
+            }
             initialPageAccess();
             registerId = Request.QueryString["id"];
             showUserInformation();
         }
         protected void btnCancel_Click(object sender, EventArgs e)
         {
+            goBack();
+        }
+        protected void goBack()
+        {
             addSession();
-            Response.Redirect("ApproveUsers");
+            if (!string.IsNullOrWhiteSpace(previousPage)) Response.Redirect(previousPage);
+            else Response.Redirect("Home.aspx");
         }
         protected void showUserInformation()
         {
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             //Check if the ID exists in the database:
-            cmd.CommandText = "select count(*) from registrations where registerId = '"+registerId+"' ";
+            cmd.CommandText = "select count(*) from registrations where registerId = '"+registerId.Replace("'", "''") + "' ";
             int countUser = Convert.ToInt32(cmd.ExecuteScalar());
             if(countUser > 0)//if ID exists, countUser = 1
             {
@@ -63,23 +79,33 @@ namespace NephroNet.Accounts.Admin
                 //Get role ID as int:
                 cmd.CommandText = "select register_roleId from [Registrations] where [registerId] = '" + registerId + "' ";
                 int int_roleId = Convert.ToInt32(cmd.ExecuteScalar());
+                string patientOrPhysicianId = "";
                 //Convert role ID to string:
                 string role = "";
                 if (int_roleId == 1)
                     role = "Admin";
                 else if (int_roleId == 2)
+                {
                     role = "Physician";
+                    //Get Physician ID:
+                    cmd.CommandText = "select register_physicianId from [Registrations] where [registerId] = '" + registerId + "' ";
+                    patientOrPhysicianId = cmd.ExecuteScalar().ToString();
+                }
                 else
+                {
                     role = "Patient";
+                    //Get patient ID:
+                    cmd.CommandText = "select register_patientId from [Registrations] where [registerId] = '" + registerId + "' ";
+                    patientOrPhysicianId = cmd.ExecuteScalar().ToString();
+                }
                 //Get phone:
                 cmd.CommandText = "select register_phone from [Registrations] where [registerId] = '" + registerId + "' ";
                 string phone = cmd.ExecuteScalar().ToString();
                 //Get Country:
                 cmd.CommandText = "select register_country from [Registrations] where [registerId] = '" + registerId + "' ";
                 string country = cmd.ExecuteScalar().ToString();
-                //Get patient ID:
-                cmd.CommandText = "select register_patientId from [Registrations] where [registerId] = '" + registerId + "' ";
-                string patientId = cmd.ExecuteScalar().ToString();
+
+                
                 string phoneFormat = "";
                 if (country.Equals("United States"))
                     phoneFormat = Layouts.phoneFormat(phone);
@@ -96,20 +122,22 @@ namespace NephroNet.Accounts.Admin
                     "<tr><td>Zip code: </td><td>" + zip + "</td></tr>" +
                     "<tr><td>Phone#: </td><td>" + phoneFormat + "</td></tr>" +
                     "<tr><td>Role: </td><td>" + role + "</td></tr>";
-                if (!string.IsNullOrWhiteSpace(patientId))
+                if (!string.IsNullOrWhiteSpace(patientOrPhysicianId))
                 {
-                    lblUserInformation.Text += "<tr><td>Patient ID: </td><td>" + patientId + "</td></tr>";
+                    if (int_roleId == 3)
+                        lblUserInformation.Text += "<tr><td>Patient ID: </td><td>" + patientOrPhysicianId + "</td></tr>";
+                    else if (int_roleId == 2)
+                        lblUserInformation.Text += "<tr><td>Physician ID: </td><td>" + patientOrPhysicianId + "</td></tr>";
                 }
                 lblUserInformation.Text += "</table>";
                 lblUserInformation.Visible = true;
                 //Copy values to globals:
                 g_firstName = firstName; g_lastName = lastName; g_email = email; g_city = city; g_state = state;
-                g_zip = zip; g_address = address; g_phone=phone;g_roleId = int_roleId; g_patientId = patientId; g_country = country;
+                g_zip = zip; g_address = address; g_phone=phone;g_roleId = int_roleId; g_patientOrPhysicianId = patientOrPhysicianId; g_country = country;
             }
             else
             {
-                addSession();
-                Response.Redirect("ApproveUsers");
+                goBack();
             }
             connect.Close();
         }
@@ -223,12 +251,26 @@ namespace NephroNet.Accounts.Admin
             cmd.CommandText = "select loginId from Logins where login_username like '"+newUsername+"' ";
             string newLoginId = cmd.ExecuteScalar().ToString();
             //Store the user's information into the "Users" table:
-            cmd.CommandText = "insert into Users (user_firstname, user_lastname, user_email, user_city, user_state, user_zip, user_address, user_phone, loginId, user_patientId, user_country) values " +
-                "('"+g_firstName+"', '"+g_lastName+"', '"+g_email+"', '"+g_city+"', '"+g_state+"', '"+g_zip+"', '"+g_address+"', '"+g_phone+"', '"+newLoginId+"', '"+g_patientId+"', '"+g_country+"') ";
+            cmd.CommandText = "insert into Users (user_firstname, user_lastname, user_email, user_city, user_state, user_zip, user_address, user_phone, loginId, user_country) values " +
+                "('"+g_firstName+"', '"+g_lastName+"', '"+g_email+"', '"+g_city+"', '"+g_state+"', '"+g_zip+"', '"+g_address+"', '"+g_phone+"', '"+newLoginId+"', '"+g_country+"') ";
             cmd.ExecuteScalar();
             //Get the user ID of the user who was just added:
-            cmd.CommandText = "select userId from users where loginId = '"+newLoginId+"' ";
+            cmd.CommandText = "select userId from users where loginId = '" + newLoginId + "' ";
             string temp_userId = cmd.ExecuteScalar().ToString();
+            //Store the new patient ID or physician ID:
+            int int_roleId = Convert.ToInt32(g_roleId);
+            if(int_roleId == 2)//2: Physician
+            {
+                cmd.CommandText = "insert into PhysicianCompleteProfiles (physicianCompleteProfile_PhysicianId, userId) values " +
+                    "('"+g_patientOrPhysicianId+"', '"+ temp_userId + "')";
+                cmd.ExecuteScalar();
+            }
+            else if(int_roleId == 3)//3: Patient
+            {
+                cmd.CommandText = "insert into PatientCompleteProfiles (PatientCompleteProfile, userId) values " +
+                    "('" + g_patientOrPhysicianId + "', '" + temp_userId + "')";
+                cmd.ExecuteScalar();
+            }
             connect.Close();
             //Create an email message to be sent:
             string emailMessage = "Hello "+g_firstName + " " + g_lastName + ",\n\n"+

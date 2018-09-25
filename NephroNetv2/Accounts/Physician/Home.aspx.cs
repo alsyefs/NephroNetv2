@@ -156,7 +156,8 @@ namespace NephroNet.Accounts.Physician
                 creator = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(id, Layouts.getTimeFormat(time), title, type, creator);
+                if (!type.Equals("Consultation"))
+                    dt.Rows.Add(id, Layouts.getTimeFormat(time), title, type, creator);
             }
             connect.Close();
             grdTopics.DataSource = dt;

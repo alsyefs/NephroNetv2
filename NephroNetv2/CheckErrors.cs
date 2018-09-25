@@ -233,6 +233,18 @@ namespace NephroNet
             }
             return correct;
         }
+        //Validate physician ID:
+        public bool validPhysiciantId(string physicianId, out string result)
+        {
+            bool correct = true;
+            result = "";
+            if (string.IsNullOrEmpty(physicianId))
+            {
+                correct = false;
+                result = "Invalid input: Please type the physician ID.";
+            }
+            return correct;
+        }
         //Validate question
         public bool validQuestion(string question, out string result)
         {

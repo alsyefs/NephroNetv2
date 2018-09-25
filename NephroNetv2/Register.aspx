@@ -10,53 +10,53 @@
             <div class="panel-body">
                 <asp:UpdatePanel ID="upPatientId" UpdateMode="Conditional" runat="server">
                     <ContentTemplate>
-                        <div class="registerTable">
+                        <div >
                         <table >
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblFirstname" runat="server" Text="First name" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblFirstname" runat="server" Text="First name" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtFirstname" runat="server" Font-Size="Medium" ></asp:TextBox></td>
+                                    <asp:TextBox ID="txtFirstname" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblFirstnameError" runat="server" Text="Firstname error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblFirstnameError" runat="server" Text="Firstname error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblLastname" runat="server" Text="Last name" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblLastname" runat="server" Text="Last name" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtLastname" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtLastname" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblLastnameError" runat="server" Text="Lastname error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblLastnameError" runat="server" Text="Lastname error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblEmail" runat="server" Text="Email" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblEmail" runat="server" Text="Email" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtEmail" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtEmail" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblEmailError" runat="server" Text="Email error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblEmailError" runat="server" Text="Email error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblCountry" runat="server" Text="Country" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblCountry" runat="server" Text="Country" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:DropDownList ID="drpCountries" runat="server" Font-Size="Medium" OnSelectedIndexChanged="drpCountries_SelectedIndexChanged" AutoPostBack="true"></asp:DropDownList></td>
+                                    <asp:DropDownList ID="drpCountries" runat="server" Font-Size="Medium" OnSelectedIndexChanged="drpCountries_SelectedIndexChanged" AutoPostBack="true" Width="100%"></asp:DropDownList></td>
                                 <td>
-                                    <asp:Label ID="lblCountryError" runat="server" Text="Country error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblCountryError" runat="server" Text="Country error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblCity" runat="server" Text="City" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblCity" runat="server" Text="City" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtCity" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtCity" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblCityError" runat="server" Text="City error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblCityError" runat="server" Text="City error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblState" runat="server" Text="State" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblState" runat="server" Text="State" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:DropDownList ID="drpStates" runat="server" Font-Size="Medium">
+                                    <asp:DropDownList ID="drpStates" runat="server" Font-Size="Medium" Width="100%">
                                         <asp:ListItem>Select a state</asp:ListItem>
                                         <asp:ListItem>Alabama</asp:ListItem>
                                         <asp:ListItem>Alaska</asp:ListItem>
@@ -109,40 +109,40 @@
                                         <asp:ListItem>Wisconsin</asp:ListItem>
                                         <asp:ListItem>Wyoming</asp:ListItem>
                                     </asp:DropDownList>
-                                    <asp:TextBox ID="txtState" runat="server" Font-Size="Medium" Visible="false"></asp:TextBox>
+                                    <asp:TextBox ID="txtState" runat="server" Font-Size="Medium" Visible="false" Width="100%"></asp:TextBox>
                                 </td>
                                 <td>
-                                    <asp:Label ID="lblStateError" runat="server" Text="State error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblStateError" runat="server" Text="State error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblZip" runat="server" Text="Zip code" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblZip" runat="server" Text="Zip code" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtZip" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtZip" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblZipError" runat="server" Text="Zip error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblZipError" runat="server" Text="Zip error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblAddress" runat="server" Text="Address" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblAddress" runat="server" Text="Address" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtAddress" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtAddress" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblAddressError" runat="server" Text="Address error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblAddressError" runat="server" Text="Address error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblPhone" runat="server" Text="Phone#" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblPhone" runat="server" Text="Phone#" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtPhone" runat="server" Font-Size="Medium"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtPhone" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblPhoneError" runat="server" Text="Phone error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblPhoneError" runat="server" Text="Phone error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblRole" runat="server" Text="Role" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblRole" runat="server" Text="Role" Font-Size="Medium" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:DropDownList ID="drpRole" runat="server" Font-Size="Medium" AutoPostBack="true" OnSelectedIndexChanged="drpRole_SelectedIndexChanged">
+                                    <asp:DropDownList ID="drpRole" runat="server" Font-Size="Medium" AutoPostBack="true" OnSelectedIndexChanged="drpRole_SelectedIndexChanged" Width="100%">
                                         <asp:ListItem>Select a role</asp:ListItem>
                                         <asp:ListItem>Admin</asp:ListItem>
                                         <asp:ListItem>Physician</asp:ListItem>
@@ -150,15 +150,15 @@
                                     </asp:DropDownList>
                                 </td>
                                 <td>
-                                    <asp:Label ID="lblRoleError" runat="server" Text="Role error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblRoleError" runat="server" Text="Role error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <asp:Label ID="lblPatientId" runat="server" Text="Patient ID" Font-Size="Medium" Visible="False"></asp:Label></td>
+                                    <asp:Label ID="lblPatientOrPhysicianId" runat="server" Text="Patient ID" Font-Size="Medium" Visible="False" Width="100%"></asp:Label></td>
                                 <td>
-                                    <asp:TextBox ID="txtPatientId" runat="server" Font-Size="Medium" Visible="False"></asp:TextBox></td>
+                                    <asp:TextBox ID="txtPatientOrPhysicianId" runat="server" Font-Size="Medium" Visible="False" Width="100%"></asp:TextBox></td>
                                 <td>
-                                    <asp:Label ID="lblPatientIdError" runat="server" Text="Patient ID error" ForeColor="Red" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                    <asp:Label ID="lblPatientOrPhysicianIdError" runat="server" Text="Patient ID error" ForeColor="Red" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
 
 
@@ -171,7 +171,7 @@
                             </tr>
                             <tr>
                                 <td></td>
-                                <td><asp:Label ID="lblResult" runat="server" Text="Result" Visible="False" Font-Size="Medium"></asp:Label></td>
+                                <td><asp:Label ID="lblResult" runat="server" Text="Result" Visible="False" Font-Size="Medium" Width="100%"></asp:Label></td>
                             </tr>
                         </table>
                             </div>

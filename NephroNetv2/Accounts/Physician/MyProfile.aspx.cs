@@ -8,6 +8,8 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace NephroNet.Accounts.Physician
 {
@@ -82,177 +84,254 @@ namespace NephroNet.Accounts.Physician
         protected void showInformation()
         {
             getCompleteProfileInformation();
+            getEditCompleteProfileInformation();
             viewProfiles();
         }
-        
         //public override void VerifyRenderingInServerForm(Control control) { }
+        //Methods to show and hide controls
         protected void viewProfiles()
         {
             View.Visible = true;
             EditCompleteProfile.Visible = false;
+            lblSaveCompleteProfileMessage.Visible = false;
+            UserAgreement.Visible = false;
         }
-        
         protected void showEditCompleteProfile()
         {
             View.Visible = false;
             EditCompleteProfile.Visible = true;
+            UserAgreement.Visible = false;
         }
-        protected void showEditBlockedUsers()
+        protected void showUserAgreement()
         {
             View.Visible = false;
             EditCompleteProfile.Visible = false;
-        }
-        protected void showEditCurrentHealthConditions()
-        {
-            View.Visible = false;
-            EditCompleteProfile.Visible = false;
-        }
-        protected void showEditCurrentTreatments()
-        {
-            View.Visible = false;
-            EditCompleteProfile.Visible = false;
+            lblSaveCompleteProfileMessage.Visible = false;
+            UserAgreement.Visible = true;
+            //Lode the user agreement:
+            string userAgreementText =
+                "This website follows HIPAA" +
+                "- Your information will not be shared with a 3rd part.\n" +
+                "- If you set your profile to private, no one will be able to view your information except you.\n" +
+                "- If you do not set your profile to private, system admins will be able to view your complete profile.\n" +
+                "  This helps them to give recommendations based on your profile information.\n" +
+                "- For more information, please contact the support team by email NephroNet2018@gmail.com\n\n" +
+                "-------------------------------------------------------------------------------------------------" +
+                "----------------------------The below was copied from: https://www.hhs.gov ----------------------";
+            txtUserAgreement.Text = userAgreementText;
+            //The below method will more text to the user agreement:
+            setAgreementText();
+            lblAgree.Text = "I agree to the terms and conditions";
+            chkAgree.Visible = true;
+            chkAgree.Checked = false;
         }
         protected void btnCompleteProfile_Click(object sender, EventArgs e)
         {
+            showEditCompleteProfile();
+        }
 
+        protected void getEditCompleteProfileInformation()
+        {
+            lblPrivateMessage.Visible = true;
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+            string userId = cmd.ExecuteScalar().ToString();
+            connect.Close();
+            PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
+            string completeProfileId = completeProfile.ID;
+            int isPrivate = completeProfile.Private;
+            string dialysis = completeProfile.Dialysis;
+            string homeDialysis = completeProfile.HomeDialysis;
+            string transplantation = completeProfile.Transplantation;
+            string hypertension = completeProfile.Hypertension;
+            string gN = completeProfile.GN;
+            string physicianId = completeProfile.PhysicianID;
+            if (isPrivate == 1)
+                chkIsPrivate.Checked = true;
+            else
+                chkIsPrivate.Checked = false;
+            if (chkIsPrivate.Checked)
+                lblPrivateMessage.Text = "Your account will become private";
+            else
+                lblPrivateMessage.Text = "Only Admins can view your account";
+            if (!string.IsNullOrWhiteSpace(dialysis))
+                txtDialysis.Text = dialysis;
+            if (!string.IsNullOrWhiteSpace(homeDialysis))
+                txtHomeDialysis.Text = homeDialysis;
+            if (!string.IsNullOrWhiteSpace(transplantation))
+                txtTransplantation.Text = transplantation;
+            if (!string.IsNullOrWhiteSpace(hypertension))
+                txtHypertension.Text = hypertension;
+            if (!string.IsNullOrWhiteSpace(gN))
+                txtGN.Text = gN;
+            if (!string.IsNullOrWhiteSpace(physicianId))
+                txtPhysicianId.Text = physicianId;
+        }
+        protected bool checkEditCompleteProfileInformationInput()
+        {
+            bool correct = true;
+            //Hide everything first:
+            lblDialysisError.Visible = false;
+            lblHomeDialysisError.Visible = false;
+            lblTransplantationError.Visible = false;
+            lblHypertensionError.Visible = false;
+            lblGNError.Visible = false;
+            lblPhysicianIdError.Visible = false;
+            //There is nothing to validate for now!
+            return correct;
+        }
+
+        protected void chkIsPrivate_CheckedChanged(object sender, EventArgs e)
+        {
+            lblPrivateMessage.Visible = true;
+            if (chkIsPrivate.Checked)
+                lblPrivateMessage.Text = "Your account will become private";
+            else
+                lblPrivateMessage.Text = "Only Admins can view your account";
+        }
+
+
+
+        protected void chkAgree_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        protected void btnAgree_Click(object sender, EventArgs e)
+        {
+            //If the checkbox is not checked, show an error:
+            if (!chkAgree.Checked)
+            {
+                lblAgreeError.Visible = true;
+                lblAgreeError.Text = "Please, click on the check box that you agree on the terms and conditions";
+            }
+            else
+            {
+                //If the checkbock is checked, store the new information and hide the user agreement:
+                //save:
+                lblSaveCompleteProfileMessage.Visible = false;
+                //check for input errors:
+                if (checkEditCompleteProfileInformationInput())
+                {
+                    //update the new information and store it in the DB:
+                    connect.Open();
+                    SqlCommand cmd = connect.CreateCommand();
+                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                    string userId = cmd.ExecuteScalar().ToString();
+                    PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
+                    string completeProfileId = completeProfile.ID;
+                    //replace the single quote with double quotes in all inputs.
+                    string dialysis = txtDialysis.Text.Replace("'", "''");
+                    string homeDialysis = txtHomeDialysis.Text.Replace("'", "''");
+                    string transplantation = txtTransplantation.Text.Replace("'", "''");
+                    string hypertension = txtHypertension.Text.Replace("'", "''");
+                    string gN = txtGN.Text.Replace("'", "''");
+                    string physicianId = txtPhysicianId.Text.Replace("'", "''");
+                    int isPrivate = 0;
+                    if (chkIsPrivate.Checked)
+                        isPrivate = 1;
+                    else
+                        isPrivate = 0;
+                    //update the record in the database.
+                    cmd.CommandText = "update [PhysicianCompleteProfiles] set [physicianCompleteProfile_Dialysis] = '" + dialysis + "', [physicianCompleteProfile_homeDialysis] = '" + homeDialysis + "', " +
+                        "[physicianCompleteProfile_transplantation] = '" + transplantation + "', [physicianCompleteProfile_hypertension] = '" + hypertension + "', [physicianCompleteProfile_GN] = '" + gN + "', " +
+                        "[physicianCompleteProfile_physicianId] = '" + physicianId + "', [physicianCompleteProfile_isPrivate] = '" + isPrivate + "'" +
+                        " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                    cmd.ExecuteScalar();
+                    //if there is a related record in another table, update it.
+
+                    connect.Close();
+                    lblSaveCompleteProfileMessage.Visible = true;
+                }
+                getCompleteProfileInformation();
+                //Hide the user agreement:
+                showEditCompleteProfile();
+            }
+        }
+
+        protected void btnDisagree_Click(object sender, EventArgs e)
+        {
+            //Hide the user agreement and do nothing:
+            showEditCompleteProfile();
+        }
+        protected void setAgreementText()
+        {
+            string line;
+            try
+            {
+                string filePath = System.Web.HttpContext.Current.Request.PhysicalApplicationPath;
+                StringBuilder text = new StringBuilder();
+                //Pass the file path and file name to the StreamReader constructor
+                using (StreamReader sr = new StreamReader(filePath + @"\Content\HIPPA_regulations.txt", Encoding.Default))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        text.Append(line + "\n");
+                    }
+                }
+                //Append the text from the text-file to the output:
+                txtUserAgreement.Text += text.ToString();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
+        }
+        protected void btnSaveEditCompleteProfile_Click(object sender, EventArgs e)
+        {
+            showUserAgreement();
+
+        }
+        protected void btnCancelEditCompleteProfile_Click(object sender, EventArgs e)
+        {
+            getCompleteProfileInformation();
+            viewProfiles();
+            lblSaveCompleteProfileMessage.Visible = false;
         }
         protected void getCompleteProfileInformation()
         {
-            string newLine = "<br/>";
+            lblRow.Text = "";
             string col_start = "<td>", col_end = "</td>", row_start = "<tr>", row_end = "</tr>";
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            CompleteProfile completeProfile = new CompleteProfile(userId, userId);
-            string completeProfileId = completeProfile.Id;
-            string onDialysis = completeProfile.OnDialysis;
-            string kidneyDisease = completeProfile.KidneyDisease;
-            string issueDate = completeProfile.IssueStartDate;
-            string bloodType = completeProfile.BloodType;
-            string address = completeProfile.Address + newLine + "  " + completeProfile.City + ", " + completeProfile.State + " " + completeProfile.Zip+
-                "<br/>" + completeProfile.Country;
-            int counter = 0;
-            string row = "";
-            row += row_start + col_start + col_end + col_start + col_end + row_end;
-            row += row_start + col_start + col_end + col_start + col_end + row_end;
-            row += row_start + col_start + "Complete Profile Information: " + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(onDialysis))
-                row += row_start + col_start + "On dialysis: " + col_end + col_start + onDialysis + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(kidneyDisease))
-                row += row_start + col_start + "Kidney disease stage: " + col_end + col_start + kidneyDisease + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(issueDate))
-                row += row_start + col_start + "Health issue started on: " + col_end + col_start + issueDate + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(bloodType))
-                row += row_start + col_start + "Blood type: " + col_end + col_start + bloodType + col_end + row_end;
-            row += row_start + col_start + "Address: " + col_end + col_start + address + col_end + row_end;
-            List<Insurance> insurances = completeProfile.Insurances;
-            if (insurances.Count > 0)
-                row += row_start + col_start + "Insurances: " + col_end + col_start + col_end + row_end;
-            foreach (Insurance ins in insurances)
-            {
-                row += row_start + col_start + "Insurance #:" + col_end + col_start + ++counter + col_end + row_end;
-                row += row_start + col_start + "Member ID:" + col_end + col_start + ins.MemberId + col_end + row_end;
-                row += row_start + col_start + "Group ID:" + col_end + col_start + ins.GroupId + col_end + row_end;
-                row += row_start + col_start + "Insurance name: " + col_end + col_start + ins.CompanyName + col_end + row_end;
-                row += row_start + col_start + "Insurance phone1 : " + col_end + col_start + Layouts.phoneFormat(ins.Phone1) + col_end + row_end;
-                row += row_start + col_start + "Insurance phone2 : " + col_end + col_start + Layouts.phoneFormat(ins.Phone2) + col_end + row_end;
-                row += row_start + col_start + "Insurance email: " + col_end + col_start + ins.Email + col_end + row_end;
-                row += row_start + col_start + "Insurance address: " + col_end + col_start +
-                    ins.Address + newLine + ins.City + ", " + ins.State + " " + ins.Zip + newLine + ins.Country +
-                    col_end + row_end;
-            }
-            ArrayList allergies = completeProfile.Allergies;
-            if (allergies.Count > 0)
-                row += row_start + col_start + "Allergies: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (var a in allergies)
-                row += row_start + col_start + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-            ArrayList majorDiagnoses = completeProfile.MajorDiagnoses;
-            if (majorDiagnoses.Count > 0)
-                row += row_start + col_start + "Major diagnoses: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (var a in majorDiagnoses)
-                row += row_start + col_start + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-            ArrayList pastHealthConditions = completeProfile.PastHealthConditions;
-            if (pastHealthConditions.Count > 0)
-                row += row_start + col_start + "Past health conditions: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (var a in pastHealthConditions)
-                row += row_start + col_start + "" + col_end + col_start + ++counter + ". " + a.ToString() + col_end + row_end;
-            List<EmailObject> emails = completeProfile.Emails;
-            if (emails.Count > 0)
-                row += row_start + col_start + "Emails: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (EmailObject e in emails)
-            {
-                row += row_start + col_start + "" + col_end + col_start + ++counter + ". Email Address: " + e.EmailAddress;
-                if (e.IsDefault == 1)
-                    row += " (default)" + col_end + row_end;
-                else
-                    row += col_end + row_end;
-            }
-            List<Phone> phones = completeProfile.Phones;
-            if (phones.Count > 0)
-                row += row_start + col_start + "Phone numbers: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (Phone e in phones)
-            {
-                row += row_start + col_start + "" + col_end + col_start + ++counter + ". Phone number: " + Layouts.phoneFormat(e.PhoneNumber);
-                if (e.IsDefault == 1)
-                    row += " (default)" + col_end + row_end;
-                else
-                    row += col_end + row_end;
-            }
-            List<EmergencyContact> emergnecyContacts = completeProfile.EmergencyContacts;
-            if (emergnecyContacts.Count > 0)
-                row += row_start + col_start + "Emergency contacts: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            foreach (EmergencyContact e in emergnecyContacts)
-            {
-                row += row_start + col_start + "Contact #:" + col_end + col_start + ++counter + col_end + row_end;
-                row += row_start + col_start + "Name: " + col_end + col_start + e.Firstname + " " + e.Lastname + col_end + row_end;
-                row += row_start + col_start + "Phone 1: " + col_end + col_start + Layouts.phoneFormat(e.Phone1) + col_end + row_end;
-                row += row_start + col_start + "Phone 2: " + col_end + col_start + Layouts.phoneFormat(e.Phone2) + col_end + row_end;
-                row += row_start + col_start + "Phone 3: " + col_end + col_start + Layouts.phoneFormat(e.Phone3) + col_end + row_end;
-                row += row_start + col_start + "Email: " + col_end + col_start + e.Email + col_end + row_end;
-                row += row_start + col_start + "Address: " + col_end + col_start +
-                    e.Address + newLine + e.City + ", " + e.State + " " + e.Zip + newLine + e.Country +
-                    col_end + row_end;
-            }
-            List<PastPatientID> pastPatientIds = completeProfile.PastPatientIds;
-            if (pastPatientIds.Count > 0)
-                row += row_start + col_start + "Past patient IDs: " + col_end + col_start + col_end + row_end;
-            counter = 0;
-            int treatment_count = 0;
-            foreach (PastPatientID p in pastPatientIds)
-            {
-                //row += row_start + col_start + "" + col_end + col_start + "" + col_end + row_end;
-                row += row_start + col_start + "Medical Record Number: " + col_end + col_start + p.MRN + col_end + row_end;
-                List<Treatment> treatments = completeProfile.Treatments;
-                string str_treatments = "";
-                if (treatments.Count > 0)
-                {
-                    str_treatments = "Treatments: " + newLine;
-                }
-                foreach (Treatment t in treatments)
-                {
-                    if (t.PastPatientId.Equals(p.ID))
-                    {
-                        row += row_start + col_start + "Treatment #: " + col_end + col_start + ++treatment_count + col_end + row_end;
-                        row += row_start + col_start + "Physician name: " + col_end + col_start + t.PhysicianFirstName + " " + t.PhysicianLastName + col_end + row_end;
-                        row += row_start + col_start + "Treatment started on: " + col_end + col_start + t.StartDate + col_end + row_end;
-                        row += row_start + col_start + "Hospital name: " + col_end + col_start + t.HospitalName + col_end + row_end;
-                        row += row_start + col_start + "Hospital address: " + col_end + col_start +
-                            t.HospitalAddress + newLine +
-                            t.HospitalCity + ", " + t.HospitalState + " " + t.HospitalZip + newLine +
-                            t.HospitalCountry +
-                            col_end + row_end;
-                    }
-                }
-            }
-            lblRow.Text += row;
             connect.Close();
+            PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
+            string completeProfileId = completeProfile.ID;
+            int isPrivate = completeProfile.Private;
+            string dialysis = completeProfile.Dialysis;
+            string homeDialysis = completeProfile.HomeDialysis;
+            string transplantation = completeProfile.Transplantation;
+            string hypertension = completeProfile.Hypertension;
+            string gN = completeProfile.GN;
+            string physicianId = completeProfile.PhysicianID;
+            string str_isPrivate = "";
+            if (isPrivate == 1)
+                str_isPrivate = "Private";
+            else
+                str_isPrivate = "Viewable by Admins";
+            string row = "";
+            row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
+            row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(dialysis))
+                row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(homeDialysis))
+                row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(transplantation))
+                row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(hypertension))
+                row += row_start + col_start + "Hypertension: " + col_end + col_start + hypertension + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(gN))
+                row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
+            if (!string.IsNullOrWhiteSpace(physicianId))
+                row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+            lblRow.Text += row;
         }
     }
 }

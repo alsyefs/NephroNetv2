@@ -301,31 +301,31 @@ namespace NephroNet {
         protected global::System.Web.UI.WebControls.Label lblRoleError;
         
         /// <summary>
-        /// lblPatientId control.
+        /// lblPatientOrPhysicianId control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPatientId;
+        protected global::System.Web.UI.WebControls.Label lblPatientOrPhysicianId;
         
         /// <summary>
-        /// txtPatientId control.
+        /// txtPatientOrPhysicianId control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtPatientId;
+        protected global::System.Web.UI.WebControls.TextBox txtPatientOrPhysicianId;
         
         /// <summary>
-        /// lblPatientIdError control.
+        /// lblPatientOrPhysicianIdError control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPatientIdError;
+        protected global::System.Web.UI.WebControls.Label lblPatientOrPhysicianIdError;
         
         /// <summary>
         /// btnSubmit control.

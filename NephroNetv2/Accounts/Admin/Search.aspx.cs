@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -304,7 +305,7 @@ namespace NephroNet.Accounts.Admin
             dt.Columns.Add("Found in", typeof(string));
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
-            dt.Columns.Add("Creator", typeof(string));            
+            dt.Columns.Add("Creator", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             connect.Open();
@@ -580,7 +581,7 @@ namespace NephroNet.Accounts.Admin
                 {
                     id = new_id;
                     //Check if the topic of the selected message is deleted or not:
-                    cmd.CommandText = "select topic_isDeleted from Topics where topicId = '"+id+"' ";
+                    cmd.CommandText = "select topic_isDeleted from Topics where topicId = '" + id + "' ";
                     int isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
                     if (isDeleted == 0)//0: False, meaning that the topic is not deleted
                     {
@@ -605,11 +606,65 @@ namespace NephroNet.Accounts.Admin
                     }
                 }
             }
+            dt = removeDuplicateRows(dt, "Time");
             connect.Close();
             grdResults.DataSource = dt;
             grdResults.DataBind();
             grdResults.Visible = true;
             rebindValues();
         }
+        public DataTable removeDuplicateRows(DataTable dTable, string colName)
+        {
+            Hashtable hTable = new Hashtable();
+            ArrayList duplicateList = new ArrayList();
+            try
+            {
+                for (int rowIndex = 0; rowIndex < dTable.Rows.Count; rowIndex++)
+                {
+                    string temp_title = dTable.Rows[rowIndex][0].ToString();
+                    string temp_time = dTable.Rows[rowIndex][2].ToString();
+                    string txt_foundIn = dTable.Rows[rowIndex][1].ToString();
+                    string temp_foundIn = "";
+                    string title_toBeRemoved = "";
+                    string time_toBeRemoved = "";
+                    for (int j = 0; j < dTable.Rows.Count; j++)
+                    {
+                        string new_title = dTable.Rows[j][0].ToString();
+                        string new_time = dTable.Rows[j][2].ToString();
+                        if (new_title.Equals(temp_title) && new_time.Equals(temp_time))
+                        {
+                            temp_foundIn = dTable.Rows[j][1].ToString() + " " + temp_foundIn;
+                            title_toBeRemoved = new_title;
+                            time_toBeRemoved = new_time;
+                        }
+                    }
+                    if (!string.IsNullOrWhiteSpace(temp_foundIn))
+                        txt_foundIn = temp_foundIn;
+                    dTable.Rows[rowIndex][1] = txt_foundIn;
+                }
+                //Add list of all the unique item value to hashtable, which stores combination of key, value pair.
+                //And add duplicate item value in arraylist.
+                foreach (DataRow drow in dTable.Rows)
+                {
+                    if (hTable.Contains(drow[colName]))
+                        duplicateList.Add(drow);
+                    else
+                    {
+                        hTable.Add(drow[colName], string.Empty);
+                    }
+                }
+                //Removing a list of duplicate items from datatable.
+                foreach (DataRow dRow in duplicateList)
+                    dTable.Rows.Remove(dRow);
+            }
+            catch (Exception e)
+            {
+                lblErrorMessage.Text = e.ToString();
+                lblErrorMessage.Visible = true;
+            }
+            //Datatable which contains unique records will be return as output.
+            return dTable;
+        }
+
     }
 }

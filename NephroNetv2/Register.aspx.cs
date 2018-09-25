@@ -240,22 +240,41 @@ namespace NephroNet
                 lblRoleError.Text = roleError;
                 drpRole.Focus();
             }
-            if (txtPatientId.Visible == true)
+            if (txtPatientOrPhysicianId.Visible == true)
             {
-                string patientId = "";
-                if (
-                    //error.ContainsSpecialChars(txtLastname.Text, out lastnameError) || 
-                    !error.validPatientId(txtPatientId.Text, out patientId))
+                string patientOrPhysicianId = "";
+                if (drpRole.SelectedIndex == 3)//3: Patient
                 {
-                    correct = false;
-                    lblPatientIdError.Visible = true;
-                    lblPatientIdError.Text = patientId;
-                    txtPatientId.Focus();
+                    if (!error.validPatientId(txtPatientOrPhysicianId.Text, out patientOrPhysicianId))
+                    {
+                        correct = false;
+                        lblPatientOrPhysicianIdError.Visible = true;
+                        lblPatientOrPhysicianIdError.Text = patientOrPhysicianId;
+                        txtPatientOrPhysicianId.Focus();
+                    }
+                    else
+                    {
+                        lblPatientOrPhysicianIdError.Visible = false;
+                    }
+                }
+                else if (drpRole.SelectedIndex == 2)//2: Physician
+                {
+                    if (!error.validPhysiciantId(txtPatientOrPhysicianId.Text, out patientOrPhysicianId))
+                    {
+                        correct = false;
+                        lblPatientOrPhysicianIdError.Visible = true;
+                        lblPatientOrPhysicianIdError.Text = patientOrPhysicianId;
+                        txtPatientOrPhysicianId.Focus();
+                    }
+                    else
+                    {
+                        lblPatientOrPhysicianIdError.Visible = false;
+                    }
                 }
             }
             else
             {
-                lblPatientIdError.Visible = false;
+                lblPatientOrPhysicianIdError.Visible = false;
             }
             return correct;
         }
@@ -275,7 +294,7 @@ namespace NephroNet
             txtLastname.Text = txtLastname.Text.Replace("'", "''");
             txtEmail.Text = txtEmail.Text.Replace("'", "''");
             txtPhone.Text = txtPhone.Text.Replace("'", "''");
-            txtPatientId.Text = txtPatientId.Text.Replace("'", "''");
+            txtPatientOrPhysicianId.Text = txtPatientOrPhysicianId.Text.Replace("'", "''");
             txtZip.Text = txtZip.Text.Replace("'", "''");
             txtState.Text = txtState.Text.Replace("'", "''");
             txtPhone.Text = txtPhone.Text.Replace(" ", "");
@@ -290,25 +309,49 @@ namespace NephroNet
                 state = drpStates.SelectedItem.ToString();
             }
             SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "insert into Registrations(register_firstname, register_lastname, register_email, register_city, register_state, register_zip, register_address, register_roleId, register_phone, register_patientId, register_country)" +
-                " values ('" + txtFirstname.Text+"', '"+txtLastname.Text+"', '"+txtEmail.Text+"', '"+txtCity.Text+"', '"+ state + "'," +
-                " '"+txtZip.Text+"', '"+txtAddress.Text+"', '"+drpRole.SelectedIndex+"','"+txtPhone.Text+"', '"+txtPatientId.Text+"', '"+drpCountries.SelectedItem.ToString()+"') ";
-            cmd.ExecuteScalar();
+            if (drpRole.SelectedIndex == 2)//2: Physician
+            {
+                cmd.CommandText = "insert into Registrations(register_firstname, register_lastname, register_email, register_city, register_state, register_zip, register_address, register_roleId, register_phone, register_physicianId, register_country, register_patientId)" +
+                  " values ('" + txtFirstname.Text + "', '" + txtLastname.Text + "', '" + txtEmail.Text + "', '" + txtCity.Text + "', '" + state + "'," +
+                  " '" + txtZip.Text + "', '" + txtAddress.Text + "', '" + drpRole.SelectedIndex + "','" + txtPhone.Text + "', '" + txtPatientOrPhysicianId.Text + "', '" + drpCountries.SelectedItem.ToString() + "', ' ') ";
+                cmd.ExecuteScalar();
+            }
+            else if (drpRole.SelectedIndex == 3)//3: Patient
+            {
+                cmd.CommandText = "insert into Registrations(register_firstname, register_lastname, register_email, register_city, register_state, register_zip, register_address, register_roleId, register_phone, register_patientId, register_country, register_physicianId)" +
+                  " values ('" + txtFirstname.Text + "', '" + txtLastname.Text + "', '" + txtEmail.Text + "', '" + txtCity.Text + "', '" + state + "'," +
+                  " '" + txtZip.Text + "', '" + txtAddress.Text + "', '" + drpRole.SelectedIndex + "','" + txtPhone.Text + "', '" + txtPatientOrPhysicianId.Text + "', '" + drpCountries.SelectedItem.ToString() + "', ' ') ";
+                cmd.ExecuteScalar();
+            }
+            else
+            {
+                cmd.CommandText = "insert into Registrations(register_firstname, register_lastname, register_email, register_city, register_state, register_zip, register_address, register_roleId, register_phone, register_patientId, register_country, register_physicianId)" +
+                  " values ('" + txtFirstname.Text + "', '" + txtLastname.Text + "', '" + txtEmail.Text + "', '" + txtCity.Text + "', '" + state + "'," +
+                  " '" + txtZip.Text + "', '" + txtAddress.Text + "', '" + drpRole.SelectedIndex + "','" + txtPhone.Text + "', '" + txtPatientOrPhysicianId.Text + "', '" + drpCountries.SelectedItem.ToString() + "', ' ') ";
+                cmd.ExecuteScalar();
+            }
             connect.Close();
         }
 
         protected void drpRole_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(drpRole.SelectedIndex == 3)
+            if(drpRole.SelectedIndex == 2)//2 : Physician
             {
-                lblPatientId.Visible = true;
-                txtPatientId.Visible = true;
+                lblPatientOrPhysicianId.Visible = true;
+                txtPatientOrPhysicianId.Visible = true;
+                lblPatientOrPhysicianId.Text = "Physician ID";
+            }
+            else if(drpRole.SelectedIndex == 3)//3 : Patient
+            {
+                lblPatientOrPhysicianId.Visible = true;
+                txtPatientOrPhysicianId.Visible = true;
+                lblPatientOrPhysicianId.Text = "Patient ID";
             }
             else
             {
-                lblPatientId.Visible = false;
-                txtPatientId.Visible = false;
-                lblPatientIdError.Visible = false;
+                lblPatientOrPhysicianId.Visible = false;
+                txtPatientOrPhysicianId.Visible = false;
+                lblPatientOrPhysicianIdError.Visible = false;
             }
         }
 

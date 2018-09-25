@@ -46,8 +46,6 @@ namespace NephroNet.Accounts.Admin
             bool correctSession = session.sessionIsCorrect(username, roleId, token, current_page, previous_page, currentTime, userIP);
             if (!correctSession)
                 clearSession();
-            //lblAlerts.Text = "(" + session.countTotalAlerts() + ")";
-            //alerts.inner ["class"] = "";
         }
         protected string GetIPAddress()
         {
@@ -62,7 +60,6 @@ namespace NephroNet.Accounts.Admin
                     return addresses[0];
                 }
             }
-
             return context.Request.ServerVariables["REMOTE_ADDR"];
         }
         protected void clearSession()
@@ -156,7 +153,8 @@ namespace NephroNet.Accounts.Admin
                 creator = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(id, Layouts.getTimeFormat(time), title, type, creator);
+                if(!type.Equals("Consultation"))
+                    dt.Rows.Add(id, Layouts.getTimeFormat(time), title, type, creator);
             }
             grdTopics.DataSource = dt;
             grdTopics.DataBind();
