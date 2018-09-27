@@ -51,7 +51,7 @@
                     <div class="navbar-collapse collapse" id="navbarSupportedContent">
                         <ul class="nav navbar-nav mr-auto">
                             <li class="nav-item"><a runat="server" href="Accounts/Physician/CreateTopic" class="nav-link">Create Topic</a></li>
-                            <li class="nav-item"><a runat="server" href="Accounts/Physician/MyTopics" class="nav-link">My Topics</a></li>
+                            <li class="nav-item"><a runat="server" href="Accounts/Physician/MyTopics" class="nav-link">Consultations</a></li>
                             <li class="nav-item"><a runat="server" href="Accounts/Physician/Search" class="nav-link">Search</a></li>
                             <li class="nav-item"><a runat="server" href="Accounts/Physician/About" class="nav-link">About</a></li>
                             <li class="nav-item"><a runat="server" href="Accounts/Physician/Contact" class="nav-link">Contact</a></li>

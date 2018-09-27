@@ -25,7 +25,7 @@
                             <asp:ListItem>Search topics by keywords in everywhere</asp:ListItem>
                         </asp:DropDownList>
                         <asp:TextBox ID="txtSearch" runat="server" OnTextChanged="txtSearch_TextChanged"></asp:TextBox>&nbsp;&nbsp;
-                <asp:Button ID="btnSearch" runat="server" Text="Search" OnClick="btnSearch_Click" Width="10%" BackColor="green" />
+                <asp:Button ID="btnSearch" runat="server" Text="Search" OnClick="btnSearch_Click" OnClientClick="pleaseWait();" Width="10%" BackColor="green" />
                         <br />
                         <br />
 
@@ -38,6 +38,8 @@
                         <br />
                         <%--Message to be displayed if there is an error in the search:--%>
                         <asp:Label ID="lblErrorMessage" runat="server" Text="" Visible="false" ForeColor="Red" Font-Size="Medium" Font-Bold="true"></asp:Label>
+                        <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                        <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                         <br />
                         <%--Message to be displayed if there is nothing to show:--%>
                         <asp:Label ID="lblResultsMessage" runat="server" Text="There is nothing to display!" Visible="false" ForeColor="Red" Font-Size="Medium" Font-Bold="true"></asp:Label>                        
@@ -64,6 +66,12 @@
                     </Triggers>
                 </asp:UpdatePanel>
                 <%--Ajax end--%>
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
                 <%--Content end--%>
             </div>
         </div>

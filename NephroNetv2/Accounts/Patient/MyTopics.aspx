@@ -1,4 +1,4 @@
-﻿<%@ Page Title="My Topics" Language="C#" MasterPageFile="~/Patient.Master" AutoEventWireup="true" CodeBehind="MyTopics.aspx.cs" Inherits="NephroNet.Accounts.Patient.MyTopics" %>
+﻿<%@ Page Title="Consultations" Language="C#" MasterPageFile="~/Patient.Master" AutoEventWireup="true" CodeBehind="MyTopics.aspx.cs" Inherits="NephroNet.Accounts.Patient.MyTopics" %>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
     <%--Body start--%>

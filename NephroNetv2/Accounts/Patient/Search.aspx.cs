@@ -293,7 +293,7 @@ namespace NephroNet.Accounts.Patient
                 id = cmd.ExecuteScalar().ToString();
                 HyperLink topicLink = new HyperLink();
                 topicLink.Text = title + " ";
-                //topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
+                topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
                 grdResults.Rows[row].Cells[0].Controls.Add(topicLink);
             }
             connect.Close();
@@ -334,7 +334,33 @@ namespace NephroNet.Accounts.Patient
                 creator = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                if (type.Equals("Consultation"))
+                {
+                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                    string userId = cmd.ExecuteScalar().ToString();
+                    int int_roleId = Convert.ToInt32(roleId);
+                    if(int_roleId == 2)//2 = Physician
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '"+id+"' and physician_userId = '"+userId+"' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if(exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    else if(int_roleId == 3)//3 = Patient
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                }
+                else
+                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
             }
             connect.Close();
             grdResults.DataSource = dt;
@@ -384,7 +410,33 @@ namespace NephroNet.Accounts.Patient
                     creator = cmd.ExecuteScalar().ToString();
                     cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                     creator = creator + " " + cmd.ExecuteScalar().ToString();
-                    dt.Rows.Add(title, "Creator name", Layouts.getTimeFormat(time), type, creator);
+                    if (type.Equals("Consultation"))
+                    {
+                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                        string userId = cmd.ExecuteScalar().ToString();
+                        int int_roleId = Convert.ToInt32(roleId);
+                        if (int_roleId == 2)//2 = Physician
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        else if (int_roleId == 3)//3 = Patient
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                    }
+                    else
+                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
                 }
             }
             connect.Close();
@@ -437,7 +489,33 @@ namespace NephroNet.Accounts.Patient
                         creator = cmd.ExecuteScalar().ToString();
                         cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                         creator = creator + " " + cmd.ExecuteScalar().ToString();
-                        dt.Rows.Add(title, "Message text", Layouts.getTimeFormat(time), type, creator);
+                        if (type.Equals("Consultation"))
+                        {
+                            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                            string userId = cmd.ExecuteScalar().ToString();
+                            int int_roleId = Convert.ToInt32(roleId);
+                            if (int_roleId == 2)//2 = Physician
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            else if (int_roleId == 3)//3 = Patient
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                        }
+                        else
+                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
                     }
                 }
             }
@@ -488,7 +566,33 @@ namespace NephroNet.Accounts.Patient
                 creator = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(title, "Time period", Layouts.getTimeFormat(time), type, creator);
+                if (type.Equals("Consultation"))
+                {
+                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                    string userId = cmd.ExecuteScalar().ToString();
+                    int int_roleId = Convert.ToInt32(roleId);
+                    if (int_roleId == 2)//2 = Physician
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    else if (int_roleId == 3)//3 = Patient
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                }
+                else
+                    dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
             }
             connect.Close();
             grdResults.DataSource = dt;
@@ -533,7 +637,33 @@ namespace NephroNet.Accounts.Patient
                 creator = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                 creator = creator + " " + cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                if (type.Equals("Consultation"))
+                {
+                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                    string userId = cmd.ExecuteScalar().ToString();
+                    int int_roleId = Convert.ToInt32(roleId);
+                    if (int_roleId == 2)//2 = Physician
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    else if (int_roleId == 3)//3 = Patient
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                }
+                else
+                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
             }
             //Search by creator
             cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ";
@@ -566,7 +696,33 @@ namespace NephroNet.Accounts.Patient
                     creator = cmd.ExecuteScalar().ToString();
                     cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                     creator = creator + " " + cmd.ExecuteScalar().ToString();
-                    dt.Rows.Add(title, "Creator name", Layouts.getTimeFormat(time), type, creator);
+                    if (type.Equals("Consultation"))
+                    {
+                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                        string userId = cmd.ExecuteScalar().ToString();
+                        int int_roleId = Convert.ToInt32(roleId);
+                        if (int_roleId == 2)//2 = Physician
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        else if (int_roleId == 3)//3 = Patient
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                    }
+                    else
+                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
                 }
             }
             //Search by message text
@@ -602,7 +758,33 @@ namespace NephroNet.Accounts.Patient
                         creator = cmd.ExecuteScalar().ToString();
                         cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
                         creator = creator + " " + cmd.ExecuteScalar().ToString();
-                        dt.Rows.Add(title, "Message text", Layouts.getTimeFormat(time), type, creator);
+                        if (type.Equals("Consultation"))
+                        {
+                            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                            string userId = cmd.ExecuteScalar().ToString();
+                            int int_roleId = Convert.ToInt32(roleId);
+                            if (int_roleId == 2)//2 = Physician
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            else if (int_roleId == 3)//3 = Patient
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                        }
+                        else
+                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
                     }
                 }
             }
@@ -633,7 +815,16 @@ namespace NephroNet.Accounts.Patient
                         string new_time = dTable.Rows[j][2].ToString();
                         if (new_title.Equals(temp_title) && new_time.Equals(temp_time))
                         {
-                            temp_foundIn = dTable.Rows[j][1].ToString() + " " + temp_foundIn;
+                            string current_tempFoundIn = "";
+                            if (string.IsNullOrWhiteSpace(temp_foundIn))
+                            {
+                                temp_foundIn = dTable.Rows[j][1].ToString();
+                                current_tempFoundIn = temp_foundIn;
+                            }
+                            if (!string.IsNullOrWhiteSpace(temp_foundIn) && !current_tempFoundIn.Equals(temp_foundIn))
+                            {
+                                temp_foundIn = temp_foundIn + ", " + dTable.Rows[j][1].ToString();
+                            }
                             title_toBeRemoved = new_title;
                             time_toBeRemoved = new_time;
                         }
@@ -659,8 +850,9 @@ namespace NephroNet.Accounts.Patient
             }
             catch (Exception e)
             {
-                lblErrorMessage.Text = e.ToString();
-                lblErrorMessage.Visible = true;
+                Console.WriteLine(e.ToString());
+                //lblErrorMessage.Text = e.ToString();
+                //lblErrorMessage.Visible = true;
             }
             //Datatable which contains unique records will be return as output.
             return dTable;
