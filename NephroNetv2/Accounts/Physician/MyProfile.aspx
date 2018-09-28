@@ -8,7 +8,14 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <%--Content start--%>
-
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
+                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 <asp:UpdatePanel ID="upContent" UpdateMode="Conditional" runat="server">
                     <ContentTemplate>
                         <%--Table View start--%>
@@ -47,28 +54,28 @@
                                         <td ><asp:Label ID="lblDialysisError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>
-                                        <td ><asp:Label ID="lblHomeDialysis" runat="server" Text="Diabetes" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblHomeDialysis" runat="server" Text="Home Dialysis" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtHomeDialysis" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblHomeDialysisError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>
-                                        <td ><asp:Label ID="lblTransplantation" runat="server" Text="Kidney Transplant" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblTransplantation" runat="server" Text="Transplantation" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtTransplantation" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblTransplantationError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     
                                     <tr>
-                                        <td ><asp:Label ID="lblHypertension" runat="server" Text="Kidney Stone" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblHypertension" runat="server" Text="Hypertension" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtHypertension" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblHypertensionError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>
-                                        <td ><asp:Label ID="lblGN" runat="server" Text="Kidney Infection" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblGN" runat="server" Text="GN" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtGN" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblGNError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>
-                                        <td ><asp:Label ID="lblPhysicianId" runat="server" Text="Heart Failure" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblPhysicianId" runat="server" Text="Physician ID" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtPhysicianId" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblPhysicianIdError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>

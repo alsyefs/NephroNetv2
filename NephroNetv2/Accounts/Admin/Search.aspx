@@ -23,6 +23,8 @@
                             <asp:ListItem>Search topics by keywords in message text</asp:ListItem>
                             <asp:ListItem>Search topics within a time period</asp:ListItem>
                             <asp:ListItem>Search topics by keywords in everywhere</asp:ListItem>
+                            <asp:ListItem>Search topics by Physician ID</asp:ListItem>
+                            <asp:ListItem>Search topics by Patient ID</asp:ListItem>
                         </asp:DropDownList>
                         <asp:TextBox ID="txtSearch" runat="server" OnTextChanged="txtSearch_TextChanged"></asp:TextBox>&nbsp;&nbsp;
                 <asp:Button ID="btnSearch" runat="server" Text="Search" OnClick="btnSearch_Click" OnClientClick="pleaseWait();" Width="10%" BackColor="green" />

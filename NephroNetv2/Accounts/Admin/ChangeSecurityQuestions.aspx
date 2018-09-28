@@ -6,7 +6,14 @@
         <h2><%: Title %></h2>
         <div class="panel panel-default">
             <div class="panel-body">
-
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
+                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 <%--Update Panel start--%>
                 <asp:UpdatePanel ID="upQuestions" UpdateMode="Conditional" runat="server">
                     <ContentTemplate>
@@ -50,13 +57,13 @@
                 </asp:UpdatePanel>
                 <%--Submit--%>
                 <br /><br /><br />
-                <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" />
+                <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();"/>
                 <%--Clear all fields--%>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <asp:Button ID="btnClearAll" runat="server" Text="Clear fields" BackColor="Yellow" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnClearAll_Click" />
+                <asp:Button ID="btnClearAll" runat="server" Text="Clear fields" BackColor="Yellow" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnClearAll_Click" OnClientClick="pleaseWait();"/>
                 <%--Cancel--%>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <asp:Button ID="btnCancel" runat="server" Text="Cancel" BackColor="Red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" />
+                <asp:Button ID="btnCancel" runat="server" Text="Cancel" BackColor="Red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();"/>
                 <br />
                 <asp:Label ID="lblSuccess" runat="server" Text="Error" ForeColor="green" Visible="False"></asp:Label>
             </div>

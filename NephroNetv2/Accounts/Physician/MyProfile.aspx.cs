@@ -244,7 +244,8 @@ namespace NephroNet.Accounts.Physician
                     connect.Close();
                     lblSaveCompleteProfileMessage.Visible = true;
                 }
-                getCompleteProfileInformation();
+                //getCompleteProfileInformation();
+                getEditCompleteProfileInformation();
                 //Hide the user agreement:
                 showEditCompleteProfile();
             }

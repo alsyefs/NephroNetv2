@@ -191,7 +191,7 @@ namespace NephroNet.Accounts.Physician
             }
             else if (drpSearch.SelectedIndex == 3)//Searching topics by messages
             {
-                cmd.CommandText = "select * from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
                 count = Convert.ToInt32(cmd.ExecuteScalar());
             }
             else if (drpSearch.SelectedIndex == 4)//Search within a time period
@@ -217,7 +217,7 @@ namespace NephroNet.Accounts.Physician
                     int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                     count += totalTopicsForTempUser;
                 }
-                cmd.CommandText = "select * from entries where entry_text like '%" + searchString + "%' ";
+                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' ";
                 count += Convert.ToInt32(cmd.ExecuteScalar());
             }
             connect.Close();

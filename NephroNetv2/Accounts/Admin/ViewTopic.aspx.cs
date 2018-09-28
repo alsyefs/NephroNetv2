@@ -426,8 +426,8 @@ namespace NephroNet.Accounts.Admin
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
-            {
+            //if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
+            //{
                 hideErrorLabels();
                 Boolean correct = checkInput();
                 if (correct)
@@ -436,7 +436,7 @@ namespace NephroNet.Accounts.Admin
                     clearInputs();
                     sendEmail();
                 }
-            }
+            //}
             if (requestedRemoveTopic) requestedRemoveTopic = false;
             if (requestedRemoveMessage) requestedRemoveMessage = false;
             requestedReportMessage = false;
@@ -446,7 +446,7 @@ namespace NephroNet.Accounts.Admin
         {
             txtEntry.Text = "";
             txtEntry.Text = "";
-            FileUpload1.Attributes.Clear();
+            //FileUpload1.Attributes.Clear();
         }
         protected void sendEmail()
         {

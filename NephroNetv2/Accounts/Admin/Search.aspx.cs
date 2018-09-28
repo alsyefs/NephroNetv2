@@ -112,6 +112,10 @@ namespace NephroNet.Accounts.Admin
                         createTimePeriodTable();
                     else if (drpSearch.SelectedIndex == 5)//Searching for everything; topics, users, and messages
                         createEverythingTable();
+                    else if (drpSearch.SelectedIndex == 6)//Searching for topics by Physician ID
+                        createPhysicianIdTable();
+                    else if (drpSearch.SelectedIndex == 7)//Searching for topics by Patient ID
+                        createPatientIdTable();
                 }
             }
             hideEverything();
@@ -163,6 +167,10 @@ namespace NephroNet.Accounts.Admin
                         createTimePeriodTable();
                     else if (drpSearch.SelectedIndex == 5)//Searching for everything; topics, users, and messages
                         createEverythingTable();
+                    else if (drpSearch.SelectedIndex == 6)//Searching for topics by Physician ID
+                        createPhysicianIdTable();
+                    else if (drpSearch.SelectedIndex == 7)//Searching for topics by Patient ID
+                        createPatientIdTable();
                 }
             }
         }
@@ -192,7 +200,7 @@ namespace NephroNet.Accounts.Admin
             }
             else if (drpSearch.SelectedIndex == 3)//Searching topics by messages
             {
-                cmd.CommandText = "select * from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
                 count = Convert.ToInt32(cmd.ExecuteScalar());
             }
             else if (drpSearch.SelectedIndex == 4)//Search within a time period
@@ -218,8 +226,34 @@ namespace NephroNet.Accounts.Admin
                     int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                     count += totalTopicsForTempUser;
                 }
-                cmd.CommandText = "select * from entries where entry_text like '%" + searchString + "%' ";
+                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' ";
                 count += Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            else if (drpSearch.SelectedIndex == 6)//Searching for topics by Physician ID
+            {
+                cmd.CommandText = "select count(*) from PhysicianCompleteProfiles where physicianCompleteProfile_physicianId like '%" + searchString + "%' ";
+                int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
+                for (int i = 1; i <= totalUsers; i++)
+                {
+                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PhysicianCompleteProfileId ASC), * FROM [PhysicianCompleteProfiles] where physicianCompleteProfile_physicianId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
+                    string temp_userId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
+                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                    count += totalTopicsForTempUser;
+                }
+            }
+            else if (drpSearch.SelectedIndex == 7)//Searching for topics by Patient ID
+            {
+                cmd.CommandText = "select count(*) from PatientCompleteProfiles where patientCompleteProfile_patientId like '%" + searchString + "%' ";
+                int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
+                for (int i = 1; i <= totalUsers; i++)
+                {
+                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PatientCompleteProfileId ASC), * FROM [PatientCompleteProfiles] where patientCompleteProfile_patientId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
+                    string temp_userId = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
+                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                    count += totalTopicsForTempUser;
+                }
             }
             connect.Close();
             return count;
@@ -790,6 +824,160 @@ namespace NephroNet.Accounts.Admin
                 }
             }
             dt = removeDuplicateRows(dt, "Time");
+            connect.Close();
+            grdResults.DataSource = dt;
+            grdResults.DataBind();
+            grdResults.Visible = true;
+            rebindValues();
+        }
+        protected void createPhysicianIdTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Title", typeof(string));
+            dt.Columns.Add("Found in", typeof(string));
+            dt.Columns.Add("Time", typeof(string));
+            dt.Columns.Add("Type", typeof(string));
+            dt.Columns.Add("Creator", typeof(string));
+            string id = "", title = "", type = "", creator = "", time = "";
+            string searchString = txtSearch.Text.Replace("'", "''");
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select count(*) from PhysicianCompleteProfiles where physicianCompleteProfile_physicianId like '%" + searchString + "%' ";
+            int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
+            for (int i = 1; i <= totalUsers; i++)
+            {
+                cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PhysicianCompleteProfileId ASC), * FROM [PhysicianCompleteProfiles] where physicianCompleteProfile_physicianId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
+                string temp_userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                for (int j = 1; j <= totalTopicsForTempUser; j++)
+                {
+                    //Get the topic ID:
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    id = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
+                    time = cmd.ExecuteScalar().ToString();
+                    //Get title:
+                    cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
+                    title = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
+                    type = cmd.ExecuteScalar().ToString();
+                    //Get creator's ID:
+                    cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
+                    string creatorId = cmd.ExecuteScalar().ToString();
+                    //Get creator's name:
+                    cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
+                    creator = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
+                    creator = creator + " " + cmd.ExecuteScalar().ToString();
+                    if (type.Equals("Consultation"))
+                    {
+                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                        string userId = cmd.ExecuteScalar().ToString();
+                        int int_roleId = Convert.ToInt32(roleId);
+                        if (int_roleId == 2)//2 = Physician
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Physician ID", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        else if (int_roleId == 3)//3 = Patient
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Physician ID", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                    }
+                    else
+                        dt.Rows.Add(title, "Physician ID", Layouts.getTimeFormat(time), type, creator);
+                }
+            }
+            connect.Close();
+            grdResults.DataSource = dt;
+            grdResults.DataBind();
+            grdResults.Visible = true;
+            rebindValues();
+        }
+        protected void createPatientIdTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Title", typeof(string));
+            dt.Columns.Add("Found in", typeof(string));
+            dt.Columns.Add("Time", typeof(string));
+            dt.Columns.Add("Type", typeof(string));
+            dt.Columns.Add("Creator", typeof(string));
+            string id = "", title = "", type = "", creator = "", time = "";
+            string searchString = txtSearch.Text.Replace("'", "''");
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select count(*) from PatientCompleteProfiles where patientCompleteProfile_patientId like '%" + searchString + "%' ";
+            int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
+            for (int i = 1; i <= totalUsers; i++)
+            {
+                cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PatientCompleteProfileId ASC), * FROM [PatientCompleteProfiles] where patientCompleteProfile_patientId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
+                string temp_userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                for (int j = 1; j <= totalTopicsForTempUser; j++)
+                {
+                    //Get the topic ID:
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    id = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
+                    time = cmd.ExecuteScalar().ToString();
+                    //Get title:
+                    cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
+                    title = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
+                    type = cmd.ExecuteScalar().ToString();
+                    //Get creator's ID:
+                    cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
+                    string creatorId = cmd.ExecuteScalar().ToString();
+                    //Get creator's name:
+                    cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
+                    creator = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
+                    creator = creator + " " + cmd.ExecuteScalar().ToString();
+                    if (type.Equals("Consultation"))
+                    {
+                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                        string userId = cmd.ExecuteScalar().ToString();
+                        int int_roleId = Convert.ToInt32(roleId);
+                        if (int_roleId == 2)//2 = Physician
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Patient ID", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        else if (int_roleId == 3)//3 = Patient
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Patient ID", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                    }
+                    else
+                        dt.Rows.Add(title, "Patient ID", Layouts.getTimeFormat(time), type, creator);
+                }
+            }
             connect.Close();
             grdResults.DataSource = dt;
             grdResults.DataBind();

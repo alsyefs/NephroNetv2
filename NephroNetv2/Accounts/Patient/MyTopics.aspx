@@ -29,7 +29,14 @@
                         <SortedDescendingHeaderStyle BackColor="#575357" />
                     </asp:GridView>
                 </div>
-
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
+                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
 
                 <%--Body content end--%>
             </div>

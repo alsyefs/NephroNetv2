@@ -381,6 +381,12 @@ namespace NephroNet.Accounts.Patient
                 //Get topic creator ID of current user viewing:
                 cmd.CommandText = "select topic_createdBy from Topics where topicId = '" + topicId + "' ";
                 string topic_creatorId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+                string topic_type = cmd.ExecuteScalar().ToString();
+                if (topic_type.Equals("Consultation"))
+                {
+                    entry_text = Encryption.decrypt(entry_text);
+                }
                 content = content + Layouts.postMessage(i, creator_name, entry_time, entry_text, imagesHtml, entry_creatorId, topic_creatorId, userId, entryId, roleId, topicId);
             }
             connect.Close();
@@ -487,27 +493,34 @@ namespace NephroNet.Accounts.Patient
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            if (!requestedRemoveTopic && !requestedRemoveMessage &&!requestedReportMessage)
+            //if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
+            //{
+            hideErrorLabels();
+            Boolean correct = checkInput();
+            if (correct)
             {
-                hideErrorLabels();
-                Boolean correct = checkInput();
-                if (correct)
-                {
-                    addNewEntry();
-                    clearInputs();
-                    sendEmail();
-                }
+                addNewEntry();
+                clearInputs();
+                sendEmail();
             }
-            requestedRemoveTopic = false;
-            requestedRemoveMessage = false;
+            //}
+            if (requestedRemoveTopic) requestedRemoveTopic = false;
+            if (requestedRemoveMessage) requestedRemoveMessage = false;
             requestedReportMessage = false;
             clearInputs();
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+            string topic_type = cmd.ExecuteScalar().ToString();
+            if (topic_type.Equals("Consultation"))
+                Page.Response.Redirect(Page.Request.Url.ToString(), true);
+            connect.Close();
         }
         protected void clearInputs()
         {
             txtEntry.Text = "";
             txtEntry.Text = "";
-            FileUpload1.Attributes.Clear();
+            //FileUpload1.Attributes.Clear();
         }
         protected void sendEmail()
         {
@@ -633,13 +646,23 @@ namespace NephroNet.Accounts.Patient
             //Get the current user's ID:
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+            string topic_type = cmd.ExecuteScalar().ToString();
+            int entry_isApproved;
+            if (topic_type.Equals("Consultation"))
+            {
+                entry_isApproved = 1;
+                description = Encryption.encrypt(description);
+            }
+            else
+                entry_isApproved = 0;
             cmd.CommandText = "insert into Entries (topicId, userId, entry_time, entry_text, entry_isDeleted, entry_isApproved, entry_isDenied, entry_hasImage) values " +
-                "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '0', '0', '" + hasImage + "')";
+                    "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '" + entry_isApproved + "', '0', '" + hasImage + "')";
             cmd.ExecuteScalar();
             cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [Entries] " +
                 "where topicId = '" + topicId + "' and userId = '" + userId + "'  " +
                 "and entry_isDeleted = '0' and entry_hasImage = '" + hasImage +
-                "' and entry_isApproved = '0' and entry_isDenied = '0' " +
+                "' and entry_isApproved = '" + entry_isApproved + "' and entry_isDenied = '0' " +
                 " ) as t where rowNum = '1'";
             entryId = cmd.ExecuteScalar().ToString();
             connect.Close();

@@ -97,7 +97,7 @@ namespace NephroNet.Accounts.Physician
             txtTitle.Text = "";
             txtTags.Text = "";
             txtDescription.Text = "";
-            FileUpload1.Attributes.Clear();
+            //FileUpload1.Attributes.Clear();
         }
         protected void sendEmail()
         {

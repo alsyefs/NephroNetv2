@@ -30,7 +30,7 @@
                         min-width: 100%;
                     }
                 </style>
-                <asp:TextBox ID="txtEntry" runat="server" Height="130px" Width="959px" TextMode="MultiLine" CssClass="content"></asp:TextBox>
+                <asp:TextBox ID="txtEntry" runat="server" Height="130px" Width="100%" TextMode="MultiLine" CssClass="content"></asp:TextBox>
                 <br />
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <asp:Label ID="lblEntryError" runat="server" Text="Invalid input: Please type a description." Visible="false" ForeColor="red"></asp:Label>
@@ -38,7 +38,7 @@
                 <br />
 
 
-                <asp:FileUpload ID="FileUpload1" runat="server" Width="385px" AllowMultiple="true" onchange="onInputChange(event)" class="btn btn-primary" />
+                <asp:FileUpload ID="FileUpload1" runat="server" Width="100%" AllowMultiple="true" onchange="onInputChange(event)" class="btn btn-primary" />
                 <div id='fileNames'></div>
                 <script type="text/javascript">
                     function onInputChange(e) {
@@ -49,17 +49,25 @@
                         $('#fileNames').html(res);
                     }
                 </script>
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
+                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 &nbsp;
                 <asp:Label ID="lblImageError" runat="server" Text="Image" Visible="false" ForeColor="red"></asp:Label>
                 <%--Submit--%><br />
                 <br />
-                <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" />
+                <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();"/>
                 &nbsp;
                 
                 <%--Cancel button--%>    
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" />
+                <asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();" />
                 <%--Error message--%>
                 <br />
                 <br />
@@ -67,7 +75,7 @@
                 <%--Content end--%>
                 <script type="text/javascript">
                     function terminateTopic(topicId, creatorId) {
-
+                        pleaseWait();
                         if (confirm('Are sure you want to terminate the selected topic?'))
                             terminateTopicConfirmed(topicId, creatorId);
                     }
@@ -89,7 +97,7 @@
                             async: true,
                             cache: false,
                             success: function (msg) {
-                                location.reload(true);
+                                window.location.href = window.location.href;
                                 //$('#ViewTopicDiv').load(document.href + '#ViewTopicDiv');
                                 console.log('Successfully terminated the topic!');
                             },
@@ -102,6 +110,7 @@
                 </script>
                 <script type="text/javascript">
                     function complain(messageId, messageNumberInPage, userId) {
+                        pleaseWait();
                         console.log('started complaining');
                         var message_text = prompt('Please enter your reason for reporting the selected message entry# (' + messageNumberInPage + '):');
                         if (message_text == null || message_text == "") {
@@ -134,7 +143,7 @@
                             cache: false,
                             success: function (msg) {
                                 console.log('Successfully reported message ID: ' + messageId + '!');
-                                location.reload(true);
+                                window.location.href = window.location.href;
                             },
                             error: function (xhr, status, error) {
                                 console.log('The call failed to report the message ID: ' + messageId);
@@ -145,6 +154,7 @@
                 </script>
                 <script type="text/javascript">
                     function removeTopic(topicId, creatorId) {
+                        pleaseWait();
                         if (confirm('Are sure you want to remove the selected topic?'))
                             removeTopicConfirmed(topicId, creatorId);
                     }
@@ -186,6 +196,7 @@
                 
                 <script type="text/javascript">
                     function removeMessage(messageId, messageNumberInPage, creatorId) {
+                        pleaseWait();
                         if (confirm('Are sure you want to remove the selected message entry# (' + messageNumberInPage + ')?'))
                             removeMessageConfirmed(messageId, creatorId);
                     }
@@ -208,7 +219,7 @@
                             cache: false,
                             success: function (msg) {
                                 console.log('Successfully deleted message ID: ' + messageId + '!');
-                                location.reload(true);
+                                window.location.href = window.location.href;
                                 //$('#ViewTopicDiv').load(document.href + '#ViewTopicDiv');
                                 //console.log('Successfully updated the page!');
                             },

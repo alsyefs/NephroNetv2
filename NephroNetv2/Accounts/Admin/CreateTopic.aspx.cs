@@ -98,7 +98,7 @@ namespace NephroNet.Accounts.Admin
             txtTitle.Text = "";
             txtTags.Text = "";
             txtDescription.Text = "";
-            FileUpload1.Attributes.Clear();
+            //FileUpload1.Attributes.Clear();
         }
         protected void allowUserAccessTopicAndStoreTags(string topicId)
         {

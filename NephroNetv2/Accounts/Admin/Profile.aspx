@@ -7,6 +7,14 @@
         <h2><%: Title %></h2>
         <div class="panel panel-default">
             <div class="panel-body">
+                <script>
+                    function pleaseWait() {
+                        $(".modal").show();
+                        return true;
+                    }
+                </script>
+                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
+                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 <%--Content start--%>
                  <%--Table start--%>
                         <div runat="server" id="View">
@@ -23,11 +31,12 @@
                     <tr>
                 <td><asp:Label ID="lblAdminCommands" runat="server" Text=" "></asp:Label></td>
                         <td style="width:200px;"> </td>
-                <td><asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Width="140px" OnClick="btnCancel_Click" /></td>
+                <td><asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Width="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();"/></td>
                         </tr>
                     </table>
                 <script type="text/javascript">
                     function terminateAccount(userId) {
+                        pleaseWait();
                         console.log('started terminateAccount');
                         if (confirm('Are you sure you want to terminate the selected account?'))
                             terminate(userId);
@@ -49,7 +58,7 @@
                             async: true,
                             cache: false,
                             success: function (msg) {
-                                location.reload(true);
+                                window.location.href = window.location.href;
                                 console.log('Successfully terminated the account!');
                             },
                             error: function (xhr, status, error) {
@@ -59,6 +68,7 @@
                         console.log('terminating...DONE!');
                     }
                     function unlockAccount(userId) {
+                        pleaseWait();
                         if (confirm('Are you sure you want to unlock the selected account?'))
                             unlock(userId);
                     }
@@ -79,7 +89,7 @@
                             async: true,
                             cache: false,
                             success: function (msg) {
-                                location.reload(true);
+                                window.location.href = window.location.href;
                                 console.log('Successfully unlocked the account!');
                             },
                             error: function (xhr, status, error) {

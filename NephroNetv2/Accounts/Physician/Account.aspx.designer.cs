@@ -31,33 +31,6 @@ namespace NephroNet.Accounts.Physician {
         protected global::System.Web.UI.WebControls.Button btnChangeSecurityQuestions;
         
         /// <summary>
-        /// btnSetViewShortProfilePermissions control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSetViewShortProfilePermissions;
-        
-        /// <summary>
-        /// btnChangeShortProfileInfo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnChangeShortProfileInfo;
-        
-        /// <summary>
-        /// btnChangeCompleteProfileInfo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnChangeCompleteProfileInfo;
-        
-        /// <summary>
         /// lblError control.
         /// </summary>
         /// <remarks>

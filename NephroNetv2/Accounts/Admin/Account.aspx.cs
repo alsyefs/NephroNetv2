@@ -21,10 +21,10 @@ namespace NephroNet.Accounts.Admin
         protected void showAllFields()
         {
             btnChangePassword.Visible = true;
-            btnChangeCompleteProfileInfo.Visible = true;
+            //btnChangeCompleteProfileInfo.Visible = true;
             btnChangeSecurityQuestions.Visible = true;
-            btnChangeShortProfileInfo.Visible = true;
-            btnSetViewShortProfilePermissions.Visible = true;
+            //btnChangeShortProfileInfo.Visible = true;
+            //btnSetViewShortProfilePermissions.Visible = true;
         }
         protected void initialAccess()
         {
