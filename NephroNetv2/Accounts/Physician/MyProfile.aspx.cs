@@ -18,11 +18,18 @@ namespace NephroNet.Accounts.Physician
         static string conn = "";
         SqlConnection connect = new SqlConnection(conn);
         string username, roleId, loginId, token;
+        static bool requestedToSaveProfileInformation = false;
+        static bool requestedToViewProfileInformation = false;
+        static bool requestedToViewEditProfileInformation = false;
+        static protected string confirmedPassword = "";
         protected void Page_Load(object sender, EventArgs e)
         {
             initialPageAccess();
             if (!Page.IsPostBack)
+            {
+                confirmedPassword = "";
                 showInformation();
+            }
         }
         protected void initialPageAccess()
         {
@@ -83,9 +90,9 @@ namespace NephroNet.Accounts.Physician
         }
         protected void showInformation()
         {
-            getCompleteProfileInformation();
-            getEditCompleteProfileInformation();
             viewProfiles();
+            //getEditCompleteProfileInformation();
+            getCompleteProfileInformation();
         }
         //public override void VerifyRenderingInServerForm(Control control) { }
         //Methods to show and hide controls
@@ -95,12 +102,18 @@ namespace NephroNet.Accounts.Physician
             EditCompleteProfile.Visible = false;
             lblSaveCompleteProfileMessage.Visible = false;
             UserAgreement.Visible = false;
+            SetNewPassword.Visible = false;
+            UpdatePassword.Visible = false;
+            TypePassword.Visible = false;
         }
         protected void showEditCompleteProfile()
         {
             View.Visible = false;
             EditCompleteProfile.Visible = true;
             UserAgreement.Visible = false;
+            SetNewPassword.Visible = false;
+            UpdatePassword.Visible = false;
+            TypePassword.Visible = false;
         }
         protected void showUserAgreement()
         {
@@ -108,6 +121,9 @@ namespace NephroNet.Accounts.Physician
             EditCompleteProfile.Visible = false;
             lblSaveCompleteProfileMessage.Visible = false;
             UserAgreement.Visible = true;
+            SetNewPassword.Visible = false;
+            UpdatePassword.Visible = false;
+            TypePassword.Visible = false;
             //Lode the user agreement:
             string userAgreementText =
                 "This website follows HIPAA" +
@@ -125,11 +141,38 @@ namespace NephroNet.Accounts.Physician
             chkAgree.Visible = true;
             chkAgree.Checked = false;
         }
+        protected void showSetNewPassword()
+        {
+            View.Visible = false;
+            EditCompleteProfile.Visible = false;
+            UserAgreement.Visible = false;
+            SetNewPassword.Visible = true;
+            UpdatePassword.Visible = false;
+            TypePassword.Visible = false;
+        }
+        protected void showUpdatePassword()
+        {
+            View.Visible = false;
+            EditCompleteProfile.Visible = false;
+            UserAgreement.Visible = false;
+            SetNewPassword.Visible = false;
+            UpdatePassword.Visible = true;
+            TypePassword.Visible = false;
+        }
+        protected void showEnterPassword()
+        {
+            View.Visible = false;
+            EditCompleteProfile.Visible = false;
+            UserAgreement.Visible = false;
+            SetNewPassword.Visible = false;
+            UpdatePassword.Visible = false;
+            TypePassword.Visible = true;
+        }
         protected void btnCompleteProfile_Click(object sender, EventArgs e)
         {
             showEditCompleteProfile();
+            getEditCompleteProfileInformation();
         }
-
         protected void getEditCompleteProfileInformation()
         {
             lblPrivateMessage.Visible = true;
@@ -137,7 +180,19 @@ namespace NephroNet.Accounts.Physician
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
+            cmd.CommandText = "select count(PhysicianCompleteProfile_password) from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+            int thereIsPassword = Convert.ToInt32(cmd.ExecuteScalar());
             connect.Close();
+            if (thereIsPassword > 0)//1 is equivalent to true; 0 => false;
+            {
+                btnSetNewPassword.Visible = false;
+                btnUpdatePassword.Visible = true;
+            }
+            else
+            {
+                btnSetNewPassword.Visible = true;
+                btnUpdatePassword.Visible = false;
+            }
             PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
             string completeProfileId = completeProfile.ID;
             int isPrivate = completeProfile.Private;
@@ -148,25 +203,67 @@ namespace NephroNet.Accounts.Physician
             string gN = completeProfile.GN;
             string physicianId = completeProfile.PhysicianID;
             if (isPrivate == 1)
+            {
                 chkIsPrivate.Checked = true;
+                //Check if the password has been entered to view the information:
+                if (string.IsNullOrWhiteSpace(confirmedPassword))
+                {
+                    showEnterPassword();
+                    requestedToViewEditProfileInformation = true;
+                }
+                else
+                {
+                    //Now, decrypt using the encryption key:
+                    //string decryptionKey = txtPassword.Text;
+                    string decryptionKey = confirmedPassword;
+                    dialysis = Encryption.decrypt(dialysis, decryptionKey);
+                    homeDialysis = Encryption.decrypt(homeDialysis, decryptionKey);
+                    transplantation = Encryption.decrypt(transplantation, decryptionKey);
+                    hypertension = Encryption.decrypt(hypertension, decryptionKey);
+                    gN = Encryption.decrypt(gN, decryptionKey);
+                    physicianId = Encryption.decrypt(physicianId, decryptionKey);
+                    if (chkIsPrivate.Checked)
+                        lblPrivateMessage.Text = "Your account will become private";
+                    else
+                        lblPrivateMessage.Text = "Only Admins can view your account";
+                    if (!string.IsNullOrWhiteSpace(dialysis))
+                        txtDialysis.Text = dialysis;
+                    if (!string.IsNullOrWhiteSpace(homeDialysis))
+                        txtHomeDialysis.Text = homeDialysis;
+                    if (!string.IsNullOrWhiteSpace(transplantation))
+                        txtTransplantation.Text = transplantation;
+                    if (!string.IsNullOrWhiteSpace(hypertension))
+                        txtHypertension.Text = hypertension;
+                    if (!string.IsNullOrWhiteSpace(gN))
+                        txtGN.Text = gN;
+                    if (!string.IsNullOrWhiteSpace(physicianId))
+                        txtPhysicianId.Text = physicianId;
+                    txtPassword.Text = "";
+                    requestedToViewEditProfileInformation = false;
+                }
+            }
             else
+            {
                 chkIsPrivate.Checked = false;
-            if (chkIsPrivate.Checked)
-                lblPrivateMessage.Text = "Your account will become private";
-            else
-                lblPrivateMessage.Text = "Only Admins can view your account";
-            if (!string.IsNullOrWhiteSpace(dialysis))
-                txtDialysis.Text = dialysis;
-            if (!string.IsNullOrWhiteSpace(homeDialysis))
-                txtHomeDialysis.Text = homeDialysis;
-            if (!string.IsNullOrWhiteSpace(transplantation))
-                txtTransplantation.Text = transplantation;
-            if (!string.IsNullOrWhiteSpace(hypertension))
-                txtHypertension.Text = hypertension;
-            if (!string.IsNullOrWhiteSpace(gN))
-                txtGN.Text = gN;
-            if (!string.IsNullOrWhiteSpace(physicianId))
-                txtPhysicianId.Text = physicianId;
+                if (chkIsPrivate.Checked)
+                    lblPrivateMessage.Text = "Your account will become private";
+                else
+                    lblPrivateMessage.Text = "Only Admins can view your account";
+                if (!string.IsNullOrWhiteSpace(dialysis))
+                    txtDialysis.Text = dialysis;
+                if (!string.IsNullOrWhiteSpace(homeDialysis))
+                    txtHomeDialysis.Text = homeDialysis;
+                if (!string.IsNullOrWhiteSpace(transplantation))
+                    txtTransplantation.Text = transplantation;
+                if (!string.IsNullOrWhiteSpace(hypertension))
+                    txtHypertension.Text = hypertension;
+                if (!string.IsNullOrWhiteSpace(gN))
+                    txtGN.Text = gN;
+                if (!string.IsNullOrWhiteSpace(physicianId))
+                    txtPhysicianId.Text = physicianId;
+                txtPassword.Text = "";
+                requestedToViewEditProfileInformation = false;
+            }
         }
         protected bool checkEditCompleteProfileInformationInput()
         {
@@ -181,7 +278,6 @@ namespace NephroNet.Accounts.Physician
             //There is nothing to validate for now!
             return correct;
         }
-
         protected void chkIsPrivate_CheckedChanged(object sender, EventArgs e)
         {
             lblPrivateMessage.Visible = true;
@@ -190,14 +286,10 @@ namespace NephroNet.Accounts.Physician
             else
                 lblPrivateMessage.Text = "Only Admins can view your account";
         }
-
-
-
         protected void chkAgree_CheckedChanged(object sender, EventArgs e)
         {
 
         }
-
         protected void btnAgree_Click(object sender, EventArgs e)
         {
             //If the checkbox is not checked, show an error:
@@ -230,31 +322,61 @@ namespace NephroNet.Accounts.Physician
                     string physicianId = txtPhysicianId.Text.Replace("'", "''");
                     int isPrivate = 0;
                     if (chkIsPrivate.Checked)
+                    {
                         isPrivate = 1;
+                        //Check if the password has been entered to view the information:
+                        if (string.IsNullOrWhiteSpace(confirmedPassword))
+                        {
+                            showEnterPassword();
+                            requestedToSaveProfileInformation = true;
+                        }
+                        else
+                        {
+                            //Now, decrypt using the encryption key:
+                            string encryptionKey = confirmedPassword;
+                            dialysis = Encryption.encrypt(dialysis, encryptionKey);
+                            homeDialysis = Encryption.encrypt(homeDialysis, encryptionKey);
+                            transplantation = Encryption.encrypt(transplantation, encryptionKey);
+                            hypertension = Encryption.encrypt(hypertension, encryptionKey);
+                            gN = Encryption.encrypt(gN, encryptionKey);
+                            physicianId = Encryption.encrypt(physicianId, encryptionKey);
+                            //update the record in the database.
+                            cmd.CommandText = "update [PhysicianCompleteProfiles] set [physicianCompleteProfile_Dialysis] = '" + dialysis + "', [physicianCompleteProfile_homeDialysis] = '" + homeDialysis + "', " +
+                                "[physicianCompleteProfile_transplantation] = '" + transplantation + "', [physicianCompleteProfile_hypertension] = '" + hypertension + "', [physicianCompleteProfile_GN] = '" + gN + "', " +
+                                "[physicianCompleteProfile_physicianId] = '" + physicianId + "', [physicianCompleteProfile_isPrivate] = '" + isPrivate + "'" +
+                                " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                            cmd.ExecuteScalar();
+                            //if there is a related record in another table, update it.
+                            lblSaveCompleteProfileMessage.Visible = true;
+                            txtPassword.Text = "";
+                            requestedToSaveProfileInformation = false;
+                        }
+                    }
                     else
+                    {
                         isPrivate = 0;
-                    //update the record in the database.
-                    cmd.CommandText = "update [PhysicianCompleteProfiles] set [physicianCompleteProfile_Dialysis] = '" + dialysis + "', [physicianCompleteProfile_homeDialysis] = '" + homeDialysis + "', " +
-                        "[physicianCompleteProfile_transplantation] = '" + transplantation + "', [physicianCompleteProfile_hypertension] = '" + hypertension + "', [physicianCompleteProfile_GN] = '" + gN + "', " +
-                        "[physicianCompleteProfile_physicianId] = '" + physicianId + "', [physicianCompleteProfile_isPrivate] = '" + isPrivate + "'" +
-                        " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
-                    cmd.ExecuteScalar();
-                    //if there is a related record in another table, update it.
-
-                    connect.Close();
-                    lblSaveCompleteProfileMessage.Visible = true;
+                        //update the record in the database.
+                        cmd.CommandText = "update [PhysicianCompleteProfiles] set [physicianCompleteProfile_Dialysis] = '" + dialysis + "', [physicianCompleteProfile_homeDialysis] = '" + homeDialysis + "', " +
+                            "[physicianCompleteProfile_transplantation] = '" + transplantation + "', [physicianCompleteProfile_hypertension] = '" + hypertension + "', [physicianCompleteProfile_GN] = '" + gN + "', " +
+                            "[physicianCompleteProfile_physicianId] = '" + physicianId + "', [physicianCompleteProfile_isPrivate] = '" + isPrivate + "'" +
+                            " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                        cmd.ExecuteScalar();
+                        //if there is a related record in another table, update it.
+                        lblSaveCompleteProfileMessage.Visible = true;
+                    }
                 }
+                connect.Close();
                 //getCompleteProfileInformation();
                 getEditCompleteProfileInformation();
                 //Hide the user agreement:
                 showEditCompleteProfile();
             }
         }
-
         protected void btnDisagree_Click(object sender, EventArgs e)
         {
             //Hide the user agreement and do nothing:
             showEditCompleteProfile();
+            requestedToSaveProfileInformation = false;
         }
         protected void setAgreementText()
         {
@@ -283,15 +405,363 @@ namespace NephroNet.Accounts.Physician
                 Console.WriteLine("Executing finally block.");
             }
         }
+        protected bool correctNewPassword()
+        {
+            bool correct = true;
+            if (string.IsNullOrWhiteSpace(txtPassword1.Text))
+            {
+                lblPassword1Error.Text = "Invalid input: Please type a password.";
+                lblPassword1Error.Visible = true;
+                correct = false;
+            }
+            if (string.IsNullOrWhiteSpace(txtPassword2.Text))
+            {
+                lblPassword2Error.Text = "Invalid input: Please type a password.";
+                lblPassword2Error.Visible = true;
+                correct = false;
+            }
+            if (correct)
+            {
+                if (!txtPassword1.Text.Equals(txtPassword2.Text))
+                {
+                    lblPassword2Error.Text = "Invalid input: Your passwords do not match.";
+                    lblPassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            if (correct)
+            {
+                if (txtPassword1.Text.Length < 4)
+                {
+                    lblPassword1Error.Text = "Invalid input: Please type a password that is at least four characters.";
+                    lblPassword1Error.Visible = true;
+                    correct = false;
+                }
+                if (txtPassword2.Text.Length < 4)
+                {
+                    lblPassword2Error.Text = "Invalid input: Please type a password that is at least four characters.";
+                    lblPassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            if (correct)
+            {
+                if (txtPassword1.Text.Contains("'"))
+                {
+                    lblPassword1Error.Text = "Invalid input: Please type a password without the single quotation character.";
+                    lblPassword1Error.Visible = true;
+                    correct = false;
+                }
+                if (txtPassword2.Text.Contains("'"))
+                {
+                    lblPassword2Error.Text = "Invalid input: Please type a password without the single quotation character.";
+                    lblPassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            return correct;
+        }
+        protected void btnSaveNewPassword_Click(object sender, EventArgs e)
+        {
+            bool stored = false;
+            //Check the inputs of the new password:
+            if (correctNewPassword())
+            {
+                confirmedPassword = txtPassword1.Text;
+                //Store the new password:
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "update PhysicianCompleteProfiles set PhysicianCompleteProfile_password = '" + Encryption.hash(confirmedPassword) + "' where userId = '" + userId + "'  ";
+                cmd.ExecuteScalar();
+                connect.Close();
+                stored = true;
+            }
+            if (stored)
+            {
+                //Show the successful message, but don't go back! Let the user click on "Go Back".
+                lblSaveNewPasswordMessage.Visible = true;
+                lblPassword1Error.Visible = false;
+                lblPassword2Error.Visible = false;
+                txtPassword1.Text = "";
+                txtPassword2.Text = "";
+            }
+            else
+                lblSaveNewPasswordMessage.Visible = false;
+        }
+        protected void btnCancelNewPassword_Click(object sender, EventArgs e)
+        {
+            lblSaveNewPasswordMessage.Visible = false;
+            showEditCompleteProfile();
+            getEditCompleteProfileInformation();
+        }
+        protected void btnSetNewPassword_Click(object sender, EventArgs e)
+        {
+            lblSaveNewPasswordMessage.Visible = false;
+            showSetNewPassword();
+        }
+        protected void btnUpdatePassword_Click(object sender, EventArgs e)
+        {
+            lblUpdatePasswordMessage.Visible = false;
+            showUpdatePassword();
+            getEditCompleteProfileInformation();
+        }
+        protected bool correctUpdatePassword()
+        {
+            bool correct = true;
+            if (string.IsNullOrWhiteSpace(txtOldPassword.Text))
+            {
+                lblOldPasswordError.Text = "Invalid input: Please type your old password.";
+                lblOldPasswordError.Visible = true;
+                correct = false;
+            }
+            else
+            {
+                string hashed = Encryption.hash(txtOldPassword.Text);
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select count(PhysicianCompleteProfile_password) from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+                int thereIsPassword = Convert.ToInt32(cmd.ExecuteScalar());
+                if (thereIsPassword > 0)
+                {
+                    cmd.CommandText = "select PhysicianCompleteProfile_password from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+                    string hashedOld = cmd.ExecuteScalar().ToString();
+                    if (!hashed.Equals(hashedOld))
+                    {
+                        lblOldPasswordError.Text = "Invalid input: Please type your correct old password.";
+                        lblOldPasswordError.Visible = true;
+                        correct = false;
+                    }
+                }
+                connect.Close();
+            }
+            if (string.IsNullOrWhiteSpace(txtUpdatePassword1.Text))
+            {
+                lblUpdatePassword1Error.Text = "Invalid input: Please type a password.";
+                lblUpdatePassword1Error.Visible = true;
+                correct = false;
+            }
+            if (string.IsNullOrWhiteSpace(txtUpdatePassword2.Text))
+            {
+                lblUpdatePassword2Error.Text = "Invalid input: Please type a password.";
+                lblUpdatePassword2Error.Visible = true;
+                correct = false;
+            }
+            if (correct)
+            {
+                if (!txtUpdatePassword1.Text.Equals(txtUpdatePassword2.Text))
+                {
+                    lblUpdatePassword2Error.Text = "Invalid input: Your passwords do not match.";
+                    lblUpdatePassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            if (correct)
+            {
+                if (txtUpdatePassword1.Text.Length < 4)
+                {
+                    lblUpdatePassword1Error.Text = "Invalid input: Please type a password that is at least four characters.";
+                    lblUpdatePassword1Error.Visible = true;
+                    correct = false;
+                }
+                if (txtUpdatePassword2.Text.Length < 4)
+                {
+                    lblUpdatePassword2Error.Text = "Invalid input: Please type a password that is at least four characters.";
+                    lblUpdatePassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            if (correct)
+            {
+                if (txtUpdatePassword1.Text.Contains("'"))
+                {
+                    lblUpdatePassword1Error.Text = "Invalid input: Please type a password without the single quotation character.";
+                    lblUpdatePassword1Error.Visible = true;
+                    correct = false;
+                }
+                if (txtUpdatePassword2.Text.Contains("'"))
+                {
+                    lblUpdatePassword2Error.Text = "Invalid input: Please type a password without the single quotation character.";
+                    lblUpdatePassword2Error.Visible = true;
+                    correct = false;
+                }
+            }
+            return correct;
+        }
+        protected void decryptThenEncrypt(string oldPassword, string newPassword)
+        {
+            if (!string.IsNullOrWhiteSpace(oldPassword) && !string.IsNullOrWhiteSpace(newPassword))
+            {
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                connect.Close();
+                PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
+                string completeProfileId = completeProfile.ID;
+                int isPrivate = completeProfile.Private;
+                string dialysis = completeProfile.Dialysis;
+                string homeDialysis = completeProfile.HomeDialysis;
+                string transplantation = completeProfile.Transplantation;
+                string hypertension = completeProfile.Hypertension;
+                string gN = completeProfile.GN;
+                string physicianId = completeProfile.PhysicianID;
+                //Decrypt using the old encryption key:
+                string decryptionKey = oldPassword;
+                dialysis = Encryption.decrypt(dialysis, decryptionKey);
+                homeDialysis = Encryption.decrypt(homeDialysis, decryptionKey);
+                transplantation = Encryption.decrypt(transplantation, decryptionKey);
+                hypertension = Encryption.decrypt(hypertension, decryptionKey);
+                gN = Encryption.decrypt(gN, decryptionKey);
+                physicianId = Encryption.decrypt(physicianId, decryptionKey);
+                //Encrypt using the new encryption key:
+                string encryptionKey = newPassword;
+                dialysis = Encryption.encrypt(dialysis, encryptionKey);
+                homeDialysis = Encryption.encrypt(homeDialysis, encryptionKey);
+                transplantation = Encryption.encrypt(transplantation, encryptionKey);
+                hypertension = Encryption.encrypt(hypertension, encryptionKey);
+                gN = Encryption.encrypt(gN, encryptionKey);
+                physicianId = Encryption.encrypt(physicianId, encryptionKey);
+                connect.Open();
+                //update the record in the database.
+                cmd.CommandText = "update [PhysicianCompleteProfiles] set [physicianCompleteProfile_Dialysis] = '" + dialysis + "', [physicianCompleteProfile_homeDialysis] = '" + homeDialysis + "', " +
+                    "[physicianCompleteProfile_transplantation] = '" + transplantation + "', [physicianCompleteProfile_hypertension] = '" + hypertension + "', [physicianCompleteProfile_GN] = '" + gN + "', " +
+                    "[physicianCompleteProfile_physicianId] = '" + physicianId + "', [physicianCompleteProfile_isPrivate] = '" + isPrivate + "'" +
+                    " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                cmd.ExecuteScalar();
+                connect.Close();
+            }
+        }
+        protected void btnSaveUpdatePassword_Click(object sender, EventArgs e)
+        {
+            bool stored = false;
+            //Check the inputs of the new password:
+            if (correctUpdatePassword())
+            {
+                confirmedPassword = txtUpdatePassword1.Text;
+                SqlCommand cmd = connect.CreateCommand();
+                connect.Open();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                connect.Close();
+                PhysicianCompleteProfile completeProfile = new PhysicianCompleteProfile(userId, userId);
+                string completeProfileId = completeProfile.ID;
+                int isPrivate = completeProfile.Private;
+                if (isPrivate == 1)
+                    decryptThenEncrypt(txtOldPassword.Text, confirmedPassword);
+                //Store the new password:
+                connect.Open();
+                cmd.CommandText = "update PhysicianCompleteProfiles set PhysicianCompleteProfile_password = '" + Encryption.hash(confirmedPassword) + "' where userId = '" + userId + "'  ";
+                cmd.ExecuteScalar();
+                connect.Close();
+                stored = true;
+            }
+            if (stored)
+            {
+                //Show the successful message, but don't go back! Let the user click on "Go Back".
+                lblUpdatePasswordMessage.Visible = true;
+                lblOldPasswordError.Visible = false;
+                lblUpdatePassword1Error.Visible = false;
+                lblUpdatePassword2Error.Visible = false;
+                txtOldPassword.Text = "";
+                txtUpdatePassword1.Text = "";
+                txtUpdatePassword2.Text = "";
+            }
+            else
+                lblUpdatePasswordMessage.Visible = false;
+        }
+        protected void btnCancelUpdatePassword_Click(object sender, EventArgs e)
+        {
+            lblUpdatePasswordMessage.Visible = false;
+            showEditCompleteProfile();
+            getEditCompleteProfileInformation();
+        }
+        protected bool correctStoredPassword()
+        {
+            bool correct = true;
+            if (string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                lblPasswordError.Text = "Invalid input: Please type your old password.";
+                lblPasswordError.Visible = true;
+                correct = false;
+            }
+            else
+            {
+                string hashed = Encryption.hash(txtPassword.Text);
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select count(physicianCompleteProfile_password) from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+                int thereIsPassword = Convert.ToInt32(cmd.ExecuteScalar());
+                if (thereIsPassword > 0)
+                {
+                    cmd.CommandText = "select physicianCompleteProfile_password from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+                    string hashedOld = cmd.ExecuteScalar().ToString();
+                    if (!hashed.Equals(hashedOld))
+                    {
+                        lblPasswordError.Text = "Invalid input: Please type your correct profile password.";
+                        lblPasswordError.Visible = true;
+                        correct = false;
+                    }
+                }
+                connect.Close();
+            }
+            return correct;
+        }
+        protected void btnSubmitPassword_Click(object sender, EventArgs e)
+        {
+            //check the password:
+            if (correctStoredPassword())
+            {
+                confirmedPassword = txtPassword.Text;
+                txtPassword.Text = "";
+                if (requestedToSaveProfileInformation)
+                    showUserAgreement();
+                else if (requestedToViewProfileInformation)
+                {
+                    viewProfiles();
+                    getCompleteProfileInformation();
+                }
+                else if (requestedToViewEditProfileInformation)
+                {
+                    showEditCompleteProfile();
+                    getEditCompleteProfileInformation();
+                }
+                lblPasswordError.Visible = false;
+            }
+        }
         protected void btnSaveEditCompleteProfile_Click(object sender, EventArgs e)
         {
-            showUserAgreement();
-
+            requestedToSaveProfileInformation = true;
+            if (chkIsPrivate.Checked)
+            {
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select count(physicianCompleteProfile_password) from PhysicianCompleteProfiles where userId = '" + userId + "' ";
+                int thereIsPassword = Convert.ToInt32(cmd.ExecuteScalar());
+                connect.Close();
+                if (thereIsPassword > 0)//1 is equivalent to true; 0 => false;
+                {
+                    showEnterPassword();
+                }
+                else
+                {
+                    showSetNewPassword();
+                }
+            }
+            else
+                showUserAgreement();
         }
         protected void btnCancelEditCompleteProfile_Click(object sender, EventArgs e)
         {
-            getCompleteProfileInformation();
             viewProfiles();
+            getCompleteProfileInformation();
             lblSaveCompleteProfileMessage.Visible = false;
         }
         protected void getCompleteProfileInformation()
@@ -317,22 +787,65 @@ namespace NephroNet.Accounts.Physician
                 str_isPrivate = "Private";
             else
                 str_isPrivate = "Viewable by Admins";
-            string row = "";
-            row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
-            row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(dialysis))
-                row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(homeDialysis))
-                row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(transplantation))
-                row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(hypertension))
-                row += row_start + col_start + "Hypertension: " + col_end + col_start + hypertension + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(gN))
-                row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
-            if (!string.IsNullOrWhiteSpace(physicianId))
-                row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
-            lblRow.Text += row;
+            if (isPrivate == 1)
+            {
+                //Check if the password has been entered to view the information:
+                if (string.IsNullOrWhiteSpace(confirmedPassword))
+                {
+                    showEnterPassword();
+                    requestedToViewProfileInformation = true;
+                }
+                else
+                {
+                    //Now, decrypt using the encryption key:
+                    string decryptionKey = confirmedPassword;
+                    dialysis = Encryption.decrypt(dialysis, decryptionKey);
+                    homeDialysis = Encryption.decrypt(homeDialysis, decryptionKey);
+                    transplantation = Encryption.decrypt(transplantation, decryptionKey);
+                    hypertension = Encryption.decrypt(hypertension, decryptionKey);
+                    gN = Encryption.decrypt(gN, decryptionKey);
+                    physicianId = Encryption.decrypt(physicianId, decryptionKey);
+                    string row = "";
+                    row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
+                    row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(dialysis))
+                        row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(homeDialysis))
+                        row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(transplantation))
+                        row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(hypertension))
+                        row += row_start + col_start + "Hypertension: " + col_end + col_start + hypertension + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(gN))
+                        row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
+                    if (!string.IsNullOrWhiteSpace(physicianId))
+                        row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+                    lblRow.Text += row;
+                    txtPassword.Text = "";
+                    requestedToViewProfileInformation = false;
+                }
+            }
+            else
+            {
+                string row = "";
+                row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
+                row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(dialysis))
+                    row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(homeDialysis))
+                    row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(transplantation))
+                    row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(hypertension))
+                    row += row_start + col_start + "Hypertension: " + col_end + col_start + hypertension + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(gN))
+                    row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
+                if (!string.IsNullOrWhiteSpace(physicianId))
+                    row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+                lblRow.Text += row;
+                txtPassword.Text = "";
+                requestedToViewProfileInformation = false;
+            }
         }
     }
 }

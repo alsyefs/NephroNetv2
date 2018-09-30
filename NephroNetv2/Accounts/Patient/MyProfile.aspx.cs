@@ -21,11 +21,15 @@ namespace NephroNet.Accounts.Patient
         static bool requestedToSaveProfileInformation = false;
         static bool requestedToViewProfileInformation = false;
         static bool requestedToViewEditProfileInformation = false;
+        static protected string confirmedPassword = "";
         protected void Page_Load(object sender, EventArgs e)
         {
             initialPageAccess();
             if (!Page.IsPostBack)
+            {
+                confirmedPassword = "";
                 showInformation();
+            }
         }
         protected void initialPageAccess()
         {
@@ -207,7 +211,7 @@ namespace NephroNet.Accounts.Patient
             {
                 chkIsPrivate.Checked = true;
                 //Check if the password has been entered to view the information:
-                if (string.IsNullOrWhiteSpace(txtPassword.Text))
+                if (string.IsNullOrWhiteSpace(confirmedPassword))
                 {
                     showEnterPassword();
                     requestedToViewEditProfileInformation = true;
@@ -215,7 +219,7 @@ namespace NephroNet.Accounts.Patient
                 else
                 {
                     //Now, decrypt using the encryption key:
-                    string decryptionKey = txtPassword.Text;
+                    string decryptionKey = confirmedPassword;
                     highBloodPressure = Encryption.decrypt(highBloodPressure, decryptionKey);
                     diabetes = Encryption.decrypt(diabetes, decryptionKey);
                     kidneyTransplant = Encryption.decrypt(kidneyTransplant, decryptionKey);
@@ -302,7 +306,6 @@ namespace NephroNet.Accounts.Patient
             //There is nothing to validate for now!
             return correct;
         }
-
         protected void chkIsPrivate_CheckedChanged(object sender, EventArgs e)
         {
             lblPrivateMessage.Visible = true;
@@ -355,7 +358,7 @@ namespace NephroNet.Accounts.Patient
                     {
                         isPrivate = 1;
                         //Check if the password has been entered to view the information:
-                        if (string.IsNullOrWhiteSpace(txtPassword.Text))
+                        if (string.IsNullOrWhiteSpace(confirmedPassword))
                         {
                             showEnterPassword();
                             requestedToSaveProfileInformation = true;
@@ -363,7 +366,7 @@ namespace NephroNet.Accounts.Patient
                         else
                         {
                             //Now, encrypt using the encryption key:
-                            string encryptionKey = txtPassword.Text;
+                            string encryptionKey = confirmedPassword;
                             highBloodPressure = Encryption.encrypt(highBloodPressure, encryptionKey);
                             diabetes = Encryption.encrypt(diabetes, encryptionKey);
                             kidneyTransplant = Encryption.encrypt(kidneyTransplant, encryptionKey);
@@ -382,7 +385,6 @@ namespace NephroNet.Accounts.Patient
                                 " where patientCompleteProfileId = '" + completeProfileId + "' ";
                             cmd.ExecuteScalar();
                             //if there is a related record in another table, update it.
-                            connect.Close();
                             lblSaveCompleteProfileMessage.Visible = true;
                             txtPassword.Text = "";
                             requestedToSaveProfileInformation = false;
@@ -399,10 +401,10 @@ namespace NephroNet.Accounts.Patient
                             " where patientCompleteProfileId = '" + completeProfileId + "' ";
                         cmd.ExecuteScalar();
                         //if there is a related record in another table, update it.
-                        connect.Close();
                         lblSaveCompleteProfileMessage.Visible = true;
                     }
                 }
+                connect.Close();
                 //getCompleteProfileInformation();
                 getEditCompleteProfileInformation();
                 //Hide the user agreement:
@@ -504,12 +506,13 @@ namespace NephroNet.Accounts.Patient
             //Check the inputs of the new password:
             if (correctNewPassword())
             {
+                confirmedPassword = txtPassword1.Text;
                 //Store the new password:
                 connect.Open();
                 SqlCommand cmd = connect.CreateCommand();
                 cmd.CommandText = "select userId from Users where loginId = '"+loginId+"' ";
                 string userId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "update PatientCompleteProfiles set PatientCompleteProfile_password = '"+Encryption.hash(txtPassword1.Text)+ "' where userId = '"+userId+"'  ";
+                cmd.CommandText = "update PatientCompleteProfiles set PatientCompleteProfile_password = '"+Encryption.hash(confirmedPassword) + "' where userId = '"+userId+"'  ";
                 cmd.ExecuteScalar();
                 connect.Close();
                 stored = true;
@@ -526,23 +529,12 @@ namespace NephroNet.Accounts.Patient
             else
                 lblSaveNewPasswordMessage.Visible = false;
         }
-
         protected void btnCancelNewPassword_Click(object sender, EventArgs e)
         {
             lblSaveNewPasswordMessage.Visible = false;
-            if (requestedToSaveProfileInformation)
-                showUserAgreement();
-            else if (requestedToViewEditProfileInformation)
-            {
-                showEditCompleteProfile();
-                getEditCompleteProfileInformation();
-            }
-            else if (requestedToViewProfileInformation)
-            {
-
-            }
+            showEditCompleteProfile();
+            getEditCompleteProfileInformation();
         }
-
         protected void btnSetNewPassword_Click(object sender, EventArgs e)
         {
             lblSaveNewPasswordMessage.Visible = false;
@@ -639,18 +631,83 @@ namespace NephroNet.Accounts.Patient
             }
             return correct;
         }
+        protected void decryptThenEncrypt(string oldPassword, string newPassword)
+        {
+            if (!string.IsNullOrWhiteSpace(oldPassword) && !string.IsNullOrWhiteSpace(newPassword))
+            {
+                connect.Open();
+                SqlCommand cmd = connect.CreateCommand();
+                cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                string userId = cmd.ExecuteScalar().ToString();
+                connect.Close();
+                PatientCompleteProfile completeProfile = new PatientCompleteProfile(userId, userId);
+                string completeProfileId = completeProfile.ID;
+                int isPrivate = completeProfile.Private;
+                string highBloodPressure = completeProfile.HighBloodPressure;
+                string diabetes = completeProfile.Diabetes;
+                string kidneyTransplant = completeProfile.KidneyTransplant;
+                string dialysis = completeProfile.Dialysis;
+                string kidneyStone = completeProfile.KidneyStone;
+                string kidneyInfection = completeProfile.KidneyInfection;
+                string heartFailure = completeProfile.HeartFailure;
+                string cancer = completeProfile.Cancer;
+                string comments = completeProfile.Comments;
+                string patientId = completeProfile.PatientID;
+                //Decrypt using the old encryption key:
+                string decryptionKey = oldPassword;
+                highBloodPressure = Encryption.decrypt(highBloodPressure, decryptionKey);
+                diabetes = Encryption.decrypt(diabetes, decryptionKey);
+                kidneyTransplant = Encryption.decrypt(kidneyTransplant, decryptionKey);
+                dialysis = Encryption.decrypt(dialysis, decryptionKey);
+                kidneyStone = Encryption.decrypt(kidneyStone, decryptionKey);
+                kidneyInfection = Encryption.decrypt(kidneyInfection, decryptionKey);
+                heartFailure = Encryption.decrypt(heartFailure, decryptionKey);
+                cancer = Encryption.decrypt(cancer, decryptionKey);
+                comments = Encryption.decrypt(comments, decryptionKey);
+                patientId = Encryption.decrypt(patientId, decryptionKey);
+                //Encrypt using the encryption key:
+                string encryptionKey = newPassword;
+                highBloodPressure = Encryption.encrypt(highBloodPressure, encryptionKey);
+                diabetes = Encryption.encrypt(diabetes, encryptionKey);
+                kidneyTransplant = Encryption.encrypt(kidneyTransplant, encryptionKey);
+                dialysis = Encryption.encrypt(dialysis, encryptionKey);
+                kidneyStone = Encryption.encrypt(kidneyStone, encryptionKey);
+                kidneyInfection = Encryption.encrypt(kidneyInfection, encryptionKey);
+                heartFailure = Encryption.encrypt(heartFailure, encryptionKey);
+                cancer = Encryption.encrypt(cancer, encryptionKey);
+                comments = Encryption.encrypt(comments, encryptionKey);
+                patientId = Encryption.encrypt(patientId, encryptionKey);
+                connect.Open();
+                //update the record in the database.
+                cmd.CommandText = "update PatientCompleteProfiles set patientCompleteProfile_highBloodPressure = '" + highBloodPressure + "', patientCompleteProfile_Diabetes = '" + diabetes + "', " +
+                    "patientCompleteProfile_kidneyTransplant = '" + kidneyTransplant + "', patientCompleteProfile_Dialysis = '" + dialysis + "', patientCompleteProfile_kidneyStone = '" + kidneyStone + "', " +
+                    "patientCompleteProfile_kidneyInfection = '" + kidneyInfection + "', patientCompleteProfile_heartFailure = '" + heartFailure + "', patientCompleteProfile_cancer = '" + cancer + "',  " +
+                    "patientCompleteProfile_comments = '" + comments + "', patientCompleteProfile_patientId = '" + patientId + "', patientCompleteProfile_isPrivate = '" + isPrivate + "'" +
+                    " where patientCompleteProfileId = '" + completeProfileId + "' ";
+                cmd.ExecuteScalar();
+                connect.Close();
+            }
+        }
         protected void btnSaveUpdatePassword_Click(object sender, EventArgs e)
         {
             bool stored = false;
             //Check the inputs of the new password:
             if (correctUpdatePassword())
             {
-                //Store the new password:
-                connect.Open();
+                confirmedPassword = txtUpdatePassword1.Text;
                 SqlCommand cmd = connect.CreateCommand();
+                connect.Open();
                 cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
                 string userId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "update PatientCompleteProfiles set PatientCompleteProfile_password = '" + Encryption.hash(txtUpdatePassword1.Text) + "' where userId = '" + userId + "'  ";
+                connect.Close();
+                PatientCompleteProfile completeProfile = new PatientCompleteProfile(userId, userId);
+                string completeProfileId = completeProfile.ID;
+                int isPrivate = completeProfile.Private;
+                if (isPrivate == 1)
+                    decryptThenEncrypt(txtOldPassword.Text, confirmedPassword);
+                //Store the new password:
+                connect.Open();
+                cmd.CommandText = "update PatientCompleteProfiles set PatientCompleteProfile_password = '" + Encryption.hash(confirmedPassword) + "' where userId = '" + userId + "'  ";
                 cmd.ExecuteScalar();
                 connect.Close();
                 stored = true;
@@ -669,7 +726,6 @@ namespace NephroNet.Accounts.Patient
             else
                 lblUpdatePasswordMessage.Visible = false;
         }
-
         protected void btnCancelUpdatePassword_Click(object sender, EventArgs e)
         {
             lblUpdatePasswordMessage.Visible = false;
@@ -714,6 +770,8 @@ namespace NephroNet.Accounts.Patient
             //check the password:
             if (correctStoredPassword())
             {
+                confirmedPassword = txtPassword.Text;
+                txtPassword.Text = "";
                 if (requestedToSaveProfileInformation)
                     showUserAgreement();
                 else if (requestedToViewProfileInformation)
@@ -729,7 +787,6 @@ namespace NephroNet.Accounts.Patient
                 lblPasswordError.Visible = false;
             }
         }
-
         protected void btnSaveEditCompleteProfile_Click(object sender, EventArgs e)
         {
             requestedToSaveProfileInformation = true;
@@ -790,7 +847,7 @@ namespace NephroNet.Accounts.Patient
             if (isPrivate == 1)
             {
                 //Check if the password has been entered to view the information:
-                if (string.IsNullOrWhiteSpace(txtPassword.Text))
+                if (string.IsNullOrWhiteSpace(confirmedPassword))
                 {
                     showEnterPassword();
                     requestedToViewProfileInformation = true;
@@ -798,7 +855,7 @@ namespace NephroNet.Accounts.Patient
                 else
                 {
                     //Now, decrypt using the encryption key:
-                    string decryptionKey = txtPassword.Text;
+                    string decryptionKey = confirmedPassword;
                     highBloodPressure = Encryption.decrypt(highBloodPressure, decryptionKey);
                     diabetes = Encryption.decrypt(diabetes, decryptionKey);
                     kidneyTransplant = Encryption.decrypt(kidneyTransplant, decryptionKey);
