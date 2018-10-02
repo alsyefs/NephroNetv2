@@ -211,6 +211,11 @@
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="Patient.Master" />
     <Content Include="Physician.Master" />
+    <Content Include="Class_Diagrams\ClassDiagram_Admin.cd" />
+    <Content Include="Class_Diagrams\ClassDiagram_Physician.cd" />
+    <Content Include="Class_Diagrams\ClassDiagram_Patient.cd" />
+    <Content Include="Class_Diagrams\ClassDiagram_General.cd" />
+    <Content Include="Class_Diagrams\ClassDiagram_All.cd" />
     <None Include="Properties\PublishProfiles\LaptopNephroNet.pubxml" />
     <None Include="Properties\PublishProfiles\LaptopNephroNetv2.pubxml" />
     <None Include="Properties\PublishProfiles\ServerNephroNet.pubxml" />
@@ -457,7 +462,6 @@
     <Compile Include="Accounts\Admin\ViewTopic.aspx.designer.cs">
       <DependentUpon>ViewTopic.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Accounts\CompleteProfile.cs" />
     <Compile Include="Accounts\PatientCompleteProfile.cs" />
     <Compile Include="Accounts\Patient\About.aspx.cs">
       <DependentUpon>About.aspx</DependentUpon>

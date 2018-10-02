@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="Patient Role">
+    <Position X="15.997" Y="0.588" Height="0.75" Width="1.7" />
+  </Comment>
+  <Class Name="NephroNet.Accounts.Patient.About" Collapsed="true">
+    <Position X="5.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAACAAwBgAgAAAEBAAQAAAAAAAAAAAIAAAA=</HashCode>
+      <FileName>Accounts\Patient\About.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.Account" Collapsed="true">
+    <Position X="12.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAgAQAAACCAAwBgAgAAAUBAAQAAIQEAAAQAAIAAAQ=</HashCode>
+      <FileName>Accounts\Patient\Account.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.ChangePassword" Collapsed="true">
+    <Position X="21.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAMCAAAAAAAKCA0BgAgAQFEBACQAAAEBABEBAMIABAQ=</HashCode>
+      <FileName>Accounts\Patient\ChangePassword.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.ChangeSecurityQuestions" Collapsed="true">
+    <Position X="30.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gBMCFAAAAIUOCh0BkAmAgGPFIgVEG0EBEAHBKEoAAAA=</HashCode>
+      <FileName>Accounts\Patient\ChangeSecurityQuestions.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.CheckPatientSession" Collapsed="true">
+    <Position X="4.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAECAAAAAAACAAAAAAAAAAEAAAAAAAACAAAABAFAAAA=</HashCode>
+      <FileName>Accounts\Patient\CheckPatientSession.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.Contact" Collapsed="true">
+    <Position X="14.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAACAAwBgAgAAAEBAAQAAAAAAAAAAAIAAAA=</HashCode>
+      <FileName>Accounts\Patient\Contact.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.CreateTopic" Collapsed="true">
+    <Position X="23.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IKEKAIAAZAAaGA0BgEhIAF0BAQUAAhNgBAAAEEIBAAQ=</HashCode>
+      <FileName>Accounts\Patient\CreateTopic.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.Home" Collapsed="true">
+    <Position X="32.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAEAAAAAAABCAAwBgAgABAEBAIQAAAAABAACAAIAAAI=</HashCode>
+      <FileName>Accounts\Patient\Home.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.MyProfile" Collapsed="true">
+    <Position X="8" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ogkBATDEDBg7hizZywgKhE0PlhUtCIwEAkDhBXYAI7g=</HashCode>
+      <FileName>Accounts\Patient\MyProfile.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.MyTopics" Collapsed="true">
+    <Position X="17" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAEAAAAAAABCAAwBgAgABAEBAIQAAAAABAACAAIAAAI=</HashCode>
+      <FileName>Accounts\Patient\MyTopics.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.Notifications" Collapsed="true">
+    <Position X="26" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAACCAAwBgAgABAEBAAQAAAAAAAAAAAIAAAQ=</HashCode>
+      <FileName>Accounts\Patient\Notifications.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.RemoveEntry" Collapsed="true">
+    <Position X="35" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAIAAACAC0RgAggBEEBAAYAAAAAAAAABAIEAAA=</HashCode>
+      <FileName>Accounts\Patient\RemoveEntry.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.RemoveTopic" Collapsed="true">
+    <Position X="10.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQEAAAAIAAACAA0RgAogBEEBAAYAAAAAAAAAAAIEAAA=</HashCode>
+      <FileName>Accounts\Patient\RemoveTopic.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.Search" Collapsed="true">
+    <Position X="19.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>wCEgAAAABAACIBwBhBwAAAUBBAQhAIAkgAICACIKAAo=</HashCode>
+      <FileName>Accounts\Patient\Search.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NephroNet.Accounts.Patient.ViewTopic" Collapsed="true">
+    <Position X="28.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AaMKAAUEQAECGS0RgApIEElBSAQBABcAAAEFEkLBAAY=</HashCode>
+      <FileName>Accounts\Patient\ViewTopic.aspx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="System.Web.UI.Page" Collapsed="true">
+    <Position X="20.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="System.Object" Collapsed="true">
+    <Position X="4.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
