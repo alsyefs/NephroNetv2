@@ -267,7 +267,7 @@ namespace NephroNet.Accounts.Admin
             }
             else if(int_roleId == 3)//3: Patient
             {
-                cmd.CommandText = "insert into PatientCompleteProfiles (PatientCompleteProfile, userId) values " +
+                cmd.CommandText = "insert into PatientCompleteProfiles (PatientCompleteProfile_PatientId, userId) values " +
                     "('" + g_patientOrPhysicianId + "', '" + temp_userId + "')";
                 cmd.ExecuteScalar();
             }
