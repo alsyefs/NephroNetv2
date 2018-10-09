@@ -60,7 +60,7 @@ namespace NephroNet.Accounts.Admin
                 string firstName = cmd.ExecuteScalar().ToString();
                 //Get last name and add it to the first name:
                 cmd.CommandText = "select register_lastname from [Registrations] where [registerId] = '" + registerId + "' ";
-                string lastName = " " + cmd.ExecuteScalar().ToString();
+                string lastName = cmd.ExecuteScalar().ToString();
                 //Get email:
                 cmd.CommandText = "select register_email from [Registrations] where [registerId] = '" + registerId + "' ";
                 string email = cmd.ExecuteScalar().ToString();
@@ -91,7 +91,7 @@ namespace NephroNet.Accounts.Admin
                     cmd.CommandText = "select register_physicianId from [Registrations] where [registerId] = '" + registerId + "' ";
                     patientOrPhysicianId = cmd.ExecuteScalar().ToString();
                 }
-                else
+                else if (int_roleId == 3)
                 {
                     role = "Patient";
                     //Get patient ID:
@@ -228,10 +228,66 @@ namespace NephroNet.Accounts.Admin
             string generatedPassword = Membership.GeneratePassword(8, 4);
             return generatedPassword;
         }
+        protected bool checkIfThereIsRecordInHospitalDB()
+        {
+            bool thereIs = true;
+            SqlCommand cmd = connect.CreateCommand();
+            connect.Open();
+            int count = 0;
+            int int_roleId = Convert.ToInt32(g_roleId);
+            if (int_roleId == 2)//2: Physician
+            {
+                cmd.CommandText = "select count(*) from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId = '" + g_patientOrPhysicianId + "' ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            else if (int_roleId == 3)//3: Patient
+            {
+                cmd.CommandText = "select count(*) from DB2_PatientShortProfiles where DB2_PatientShortProfile_patientId = '" + g_patientOrPhysicianId + "' ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            if (count == 0)
+                thereIs = false;
+            connect.Close();
+            return thereIs;
+        }
         protected void btnApprove_Click(object sender, EventArgs e)
         {
             //Hide the success message:
             lblMessage.Visible = false;
+            lblMessage.ForeColor = System.Drawing.Color.Green;
+            //Store the new patient ID or physician ID:
+            int int_roleId = Convert.ToInt32(g_roleId);
+            if (int_roleId == 2 || int_roleId == 3)
+            {
+                if (!checkIfThereIsRecordInHospitalDB())
+                {
+                    lblMessage.Visible = true;
+                    lblMessage.ForeColor = System.Drawing.Color.Red;
+                    if (int_roleId == 2)//2: Physician
+                        lblMessage.Text = "There is no physician in a hospital with the entered Physician ID";
+                    else if (int_roleId == 3)//3: Patient
+                        lblMessage.Text = "There is no patient in a hospital with the entered Patient ID";
+                }
+                else
+                {
+                    lblMessage.ForeColor = System.Drawing.Color.Green;
+                    storeNewUser();
+                }
+            }
+            else
+            {
+                lblMessage.ForeColor = System.Drawing.Color.Green;
+                storeNewUser();
+            }
+            
+        }
+        protected void storeNewUser()
+        {
+            //Hide the success message:
+            lblMessage.Visible = false;
+            lblMessage.ForeColor = System.Drawing.Color.Green;
+            //Store the new patient ID or physician ID:
+            int int_roleId = Convert.ToInt32(g_roleId);
             //Create a new unique username:
             string newUsername = createUsername();
             //Create an initial password:
@@ -245,39 +301,72 @@ namespace NephroNet.Accounts.Admin
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "insert into Logins (login_username, login_password, roleId, login_attempts, login_securityQuestionsAttempts, login_initial, login_isActive) values " +
-                "('"+newUsername+"', '"+ hashedPassword + "', '"+g_roleId+"', 0, 0, 1, 1)";
+                "('" + newUsername + "', '" + hashedPassword + "', '" + g_roleId + "', 0, 0, 1, 1)";
             cmd.ExecuteScalar();
             //Get the loginID of the user just created using the username:
-            cmd.CommandText = "select loginId from Logins where login_username like '"+newUsername+"' ";
+            cmd.CommandText = "select loginId from Logins where login_username like '" + newUsername + "' ";
             string newLoginId = cmd.ExecuteScalar().ToString();
             //Store the user's information into the "Users" table:
             cmd.CommandText = "insert into Users (user_firstname, user_lastname, user_email, user_city, user_state, user_zip, user_address, user_phone, loginId, user_country) values " +
-                "('"+g_firstName+"', '"+g_lastName+"', '"+g_email+"', '"+g_city+"', '"+g_state+"', '"+g_zip+"', '"+g_address+"', '"+g_phone+"', '"+newLoginId+"', '"+g_country+"') ";
+                "('" + g_firstName + "', '" + g_lastName + "', '" + g_email + "', '" + g_city + "', '" + g_state + "', '" + g_zip + "', '" + g_address + "', '" + g_phone + "', '" + newLoginId + "', '" + g_country + "') ";
             cmd.ExecuteScalar();
             //Get the user ID of the user who was just added:
             cmd.CommandText = "select userId from users where loginId = '" + newLoginId + "' ";
             string temp_userId = cmd.ExecuteScalar().ToString();
-            //Store the new patient ID or physician ID:
-            int int_roleId = Convert.ToInt32(g_roleId);
-            if(int_roleId == 2)//2: Physician
+            if (int_roleId == 2)//2: Physician
             {
+                //Insert into the complete profile:
                 cmd.CommandText = "insert into PhysicianCompleteProfiles (physicianCompleteProfile_PhysicianId, userId) values " +
-                    "('"+g_patientOrPhysicianId+"', '"+ temp_userId + "')";
+                    "('" + g_patientOrPhysicianId + "', '" + temp_userId + "')";
+                cmd.ExecuteScalar();
+                //Get the short profile information from the hospital's DB:
+                cmd.CommandText = "select db2_physicianShortProfile_hospitalName from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId like '"+g_patientOrPhysicianId+"' ";
+                string hospitalName = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_physicianShortProfile_hospitalAddress from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "' ";
+                string hospitalAddress = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_physicianShortProfile_officePhone from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "' ";
+                string hospitalPhone = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_physicianShortProfile_officeEmail from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "' ";
+                string hospitalEmail = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_physicianShortProfile_speciality from DB2_PhysicianShortProfiles where db2_physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "' ";
+                string hospitalSpeciality = cmd.ExecuteScalar().ToString();
+                hospitalName = hospitalName.Replace("'", "''");
+                hospitalAddress = hospitalAddress.Replace("'", "''");
+                hospitalPhone = hospitalPhone.Replace("'", "''");
+                hospitalEmail = hospitalEmail.Replace("'", "''");
+                hospitalSpeciality = hospitalSpeciality.Replace("'", "''");
+                //Insert into the short profile:
+                cmd.CommandText = "insert into PhysicianShortProfiles (physicianShortProfile_hospitalName, physicianShortProfile_hospitalAddress, physicianShortProfile_officePhone," +
+                    "physicianShortProfile_officeEmail, physicianShortProfile_speciality, userId, physicianShortProfile_physicianId) values" +
+                    "('"+hospitalName+"', '"+hospitalAddress+"', '"+hospitalPhone+"', '"+hospitalEmail+"', '"+hospitalSpeciality+"', '"+temp_userId+"', '"+g_patientOrPhysicianId+"') ";
                 cmd.ExecuteScalar();
             }
-            else if(int_roleId == 3)//3: Patient
+            else if (int_roleId == 3)//3: Patient
             {
+                //Insert into the complete profile:
                 cmd.CommandText = "insert into PatientCompleteProfiles (PatientCompleteProfile_PatientId, userId) values " +
                     "('" + g_patientOrPhysicianId + "', '" + temp_userId + "')";
+                cmd.ExecuteScalar();
+                //Get the short profile information from the hospital's DB:
+                cmd.CommandText = "select db2_patientShortProfile_email from DB2_PatientShortProfiles where db2_patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
+                string patientEmail = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_patientShortProfile_phone from DB2_PatientShortProfiles where db2_patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
+                string patientPhone = cmd.ExecuteScalar().ToString();
+                patientEmail = patientEmail.Replace("'", "''");
+                patientPhone = patientPhone.Replace("'", "''");
+                //Insert into the short profile:
+                cmd.CommandText = "insert into PatientShortProfiles (patientShortProfile_email, patientShortProfile_phone, userId," +
+                    "patientShortProfile_patientId) values" +
+                    "('" + patientEmail + "', '" + patientPhone + "', '" + temp_userId + "', '" + g_patientOrPhysicianId + "') ";
                 cmd.ExecuteScalar();
             }
             connect.Close();
             //Create an email message to be sent:
-            string emailMessage = "Hello "+g_firstName + " " + g_lastName + ",\n\n"+
-                "This email is to inform you that your account has been approved for NephroNet. To access the site, you need the following information:\n"+
-                "username: " + newUsername + "\n"+
-                "password: " + newPassword + "\n"+
-                "Remeber, your provided is a temporary password and you must change it once you login to the site.\n\n"+
+            string emailMessage = "Hello " + g_firstName + " " + g_lastName + ",\n\n" +
+                "This email is to inform you that your account has been approved for NephroNet. To access the site, you need the following information:\n" +
+                "username: " + newUsername + "\n" +
+                "password: " + newPassword + "\n" +
+                "Remeber, your provided is a temporary password and you must change it once you login to the site.\n\n" +
                 "Best regards,\nNephroNet Support\nNephroNet2018@gmail.com";
             //Send an email notification the user using the entered email:
             Email emailClass = new Email();

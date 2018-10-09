@@ -165,64 +165,6 @@ namespace NephroNet.Accounts.Physician
                 }
             }
         }
-        protected int countResults()
-        {
-            int count = 0;
-            string searchString = txtSearch.Text.Replace("'", "''");
-            connect.Open();
-            SqlCommand cmd = connect.CreateCommand();
-            if (drpSearch.SelectedIndex == 1)//Searching topics by topic titles
-            {
-                cmd.CommandText = "select count(*) from topics where topic_title like '%" + searchString + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
-                count = Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            else if (drpSearch.SelectedIndex == 2)//Searching topics by users' fullnames
-            {
-                cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ";
-                int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
-                for (int i = 1; i <= totalUsers; i++)
-                {
-                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
-                    string temp_userId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
-                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
-                    count += totalTopicsForTempUser;
-                }
-            }
-            else if (drpSearch.SelectedIndex == 3)//Searching topics by messages
-            {
-                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
-                count = Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            else if (drpSearch.SelectedIndex == 4)//Search within a time period
-            {
-                DateTime start_time = calFrom.SelectedDate, end_time = calTo.SelectedDate;
-                if (!start_time.ToString().Equals("1/1/0001 12:00:00 AM") && !end_time.ToString().Equals("1/1/0001 12:00:00 AM"))
-                {
-                    cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
-                    count = Convert.ToInt32(cmd.ExecuteScalar());
-                }
-            }
-            else if (drpSearch.SelectedIndex == 5)//Searching topics by everything; topics, users, and messages
-            {
-                cmd.CommandText = "select count(*) from topics where topic_title like '%" + searchString + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
-                count = Convert.ToInt32(cmd.ExecuteScalar());
-                cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ";
-                int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
-                for (int i = 1; i <= totalUsers; i++)
-                {
-                    cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
-                    string temp_userId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
-                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
-                    count += totalTopicsForTempUser;
-                }
-                cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' ";
-                count += Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            connect.Close();
-            return count;
-        }
         protected bool checkInput()
         {
             bool correct = true;
@@ -298,6 +240,145 @@ namespace NephroNet.Accounts.Physician
             }
             connect.Close();
         }
+        protected int countResults()
+        {
+            int count = 0;
+            string searchString = txtSearch.Text.Replace("'", "''");
+            string[] words = searchString.Split(' ');
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            if (drpSearch.SelectedIndex == 1)//Searching topics by topic titles
+            {
+                SortedSet<string> set_results = new SortedSet<string>();
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                        int temp_count = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= temp_count; i++)
+                        {
+                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            set_results.Add(temp_Id);
+                        }
+                    }
+                }
+                count = set_results.Count;
+            }
+            else if (drpSearch.SelectedIndex == 2)//Searching topics by users' fullnames
+            {
+                SortedSet<string> set_results = new SortedSet<string>();
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ";
+                        int countUsers = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= countUsers; i++)
+                        {
+                            cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + word + "%') as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            set_results.Add(temp_Id);
+                        }
+                    }
+                }
+                for (int i = 0; i < set_results.Count; i++)
+                {
+                    string temp_userId = set_results.ElementAt(i);
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
+                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                    count += totalTopicsForTempUser;
+                }
+            }
+            else if (drpSearch.SelectedIndex == 3)//Searching topics by messages
+            {
+                SortedSet<string> set_results = new SortedSet<string>();
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                        int countEntries = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= countEntries; i++)
+                        {
+                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            set_results.Add(temp_Id);
+                        }
+                    }
+                }
+                count = set_results.Count;
+            }
+            else if (drpSearch.SelectedIndex == 4)//Search within a time period
+            {
+                DateTime start_time = calFrom.SelectedDate, end_time = calTo.SelectedDate;
+                if (!start_time.ToString().Equals("1/1/0001 12:00:00 AM") && !end_time.ToString().Equals("1/1/0001 12:00:00 AM"))
+                {
+                    cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    count = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+            }
+            else if (drpSearch.SelectedIndex == 5)//Searching topics by everything; topics, users, and messages
+            {
+                SortedSet<string> topicIds = new SortedSet<string>();
+                SortedSet<string> userIds = new SortedSet<string>();
+                SortedSet<string> entryIds = new SortedSet<string>();
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                        int temp_count = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= temp_count; i++)
+                        {
+                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            topicIds.Add(temp_Id);
+                        }
+                    }
+                }
+                count = topicIds.Count;
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ";
+                        int countUsers = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= countUsers; i++)
+                        {
+                            cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + word + "%') as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            userIds.Add(temp_Id);
+                        }
+                    }
+                }
+                for (int i = 0; i < userIds.Count; i++)
+                {
+                    string temp_userId = userIds.ElementAt(i);
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' ";
+                    int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                    count += totalTopicsForTempUser;
+                }
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                        int countEntries = Convert.ToInt32(cmd.ExecuteScalar());
+                        for (int i = 1; i <= countEntries; i++)
+                        {
+                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                            string temp_Id = cmd.ExecuteScalar().ToString();
+                            entryIds.Add(temp_Id);
+                        }
+                    }
+                }
+                count += entryIds.Count;
+            }
+            connect.Close();
+            return count;
+        }
         protected void createTopicsTable()
         {
             DataTable dt = new DataTable();
@@ -305,18 +386,32 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Found in", typeof(string));
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
-            dt.Columns.Add("Creator", typeof(string));            
+            dt.Columns.Add("Creator", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
+            string[] words = searchString.Split(' ');
+            SortedSet<string> set_results = new SortedSet<string>();
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select count(*) from topics where topic_title like '%" + searchString + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= count; i++)
+            foreach (string word in words)
+            {
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countTopics; i++)
+                    {
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                        string temp_userId = cmd.ExecuteScalar().ToString();
+                        set_results.Add(temp_userId);
+                    }
+                }
+            }
+            int count = set_results.Count;
+            for (int i = 0; i < count; i++)
             {
                 //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_title like '%" + searchString + "%' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + i + "'";
-                id = cmd.ExecuteScalar().ToString();
+                id = set_results.ElementAt(i);
                 //Get type:
                 cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
                 time = cmd.ExecuteScalar().ToString();
@@ -378,14 +473,28 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Creator", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
+            string[] words = searchString.Split(' ');
+            SortedSet<string> set_results = new SortedSet<string>();
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ";
-            int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= totalUsers; i++)
+            foreach (string word in words)
             {
-                cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
-                string temp_userId = cmd.ExecuteScalar().ToString();
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ";
+                    int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countTopics; i++)
+                    {
+                        cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ) as t where rowNum = '" + i + "'";
+                        string temp_userId = cmd.ExecuteScalar().ToString();
+                        set_results.Add(temp_userId);
+                    }
+                }
+            }
+            int totalUsers = set_results.Count;
+            for (int i = 0; i < totalUsers; i++)
+            {
+                string temp_userId = set_results.ElementAt(i);
                 cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
                 int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalTopicsForTempUser; j++)
@@ -455,15 +564,29 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Creator", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
-            connect.Open();
+            string[] words = searchString.Split(' ');
+            SortedSet<string> set_results = new SortedSet<string>();
             SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= count; i++)
+            connect.Open();
+            foreach (string word in words)
+            {
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                    int count_temp = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= count_temp; i++)
+                    {
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                        string temp_userId = cmd.ExecuteScalar().ToString();
+                        set_results.Add(temp_userId);
+                    }
+                }
+            }
+            int count = set_results.Count;
+            for (int i = 0; i < count; i++)
             {
                 //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
-                string new_id = cmd.ExecuteScalar().ToString();
+                string new_id = set_results.ElementAt(i);
                 if (!new_id.Equals(id))
                 {
                     id = new_id;
@@ -519,6 +642,241 @@ namespace NephroNet.Accounts.Physician
                     }
                 }
             }
+            connect.Close();
+            grdResults.DataSource = dt;
+            grdResults.DataBind();
+            grdResults.Visible = true;
+            rebindValues();
+        }
+        protected void createEverythingTable()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Title", typeof(string));
+            dt.Columns.Add("Found in", typeof(string));
+            dt.Columns.Add("Time", typeof(string));
+            dt.Columns.Add("Type", typeof(string));
+            dt.Columns.Add("Creator", typeof(string));
+            string id = "", title = "", type = "", creator = "", time = "";
+            string searchString = txtSearch.Text.Replace("'", "''");
+            string[] words = searchString.Split(' ');
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            //Search by title
+            SortedSet<string> topics = new SortedSet<string>();
+            foreach (string word in words)
+            {
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countTopics; i++)
+                    {
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                        string temp_Id = cmd.ExecuteScalar().ToString();
+                        topics.Add(temp_Id);
+                    }
+                }
+            }
+            int count = topics.Count;
+            for (int i = 0; i < count; i++)
+            {
+                //Get the topic ID:
+                id = topics.ElementAt(i);
+                //Get type:
+                cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
+                time = cmd.ExecuteScalar().ToString();
+                //Get title:
+                cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
+                title = cmd.ExecuteScalar().ToString();
+                //Get type:
+                cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
+                type = cmd.ExecuteScalar().ToString();
+                //Get creator's ID:
+                cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
+                string creatorId = cmd.ExecuteScalar().ToString();
+                //Get creator's name:
+                cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
+                creator = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
+                creator = creator + " " + cmd.ExecuteScalar().ToString();
+                if (type.Equals("Consultation"))
+                {
+                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                    string userId = cmd.ExecuteScalar().ToString();
+                    int int_roleId = Convert.ToInt32(roleId);
+                    if (int_roleId == 2)//2 = Physician
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    else if (int_roleId == 3)//3 = Patient
+                    {
+                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (exists > 0)
+                        {
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                        }
+                    }
+                    //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                }
+                else
+                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+            }
+            //Search by creator
+            SortedSet<string> users = new SortedSet<string>();
+            foreach (string word in words)
+            {
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ";
+                    int countUsers = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countUsers; i++)
+                    {
+                        cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ) as t where rowNum = '" + i + "'";
+                        string temp_Id = cmd.ExecuteScalar().ToString();
+                        users.Add(temp_Id);
+                    }
+                }
+            }
+            int totalUsers = users.Count;
+            for (int i = 0; i < totalUsers; i++)
+            {
+                string temp_userId = users.ElementAt(i);
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
+                for (int j = 1; j <= totalTopicsForTempUser; j++)
+                {
+                    //Get the topic ID:
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    id = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
+                    time = cmd.ExecuteScalar().ToString();
+                    //Get title:
+                    cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
+                    title = cmd.ExecuteScalar().ToString();
+                    //Get type:
+                    cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
+                    type = cmd.ExecuteScalar().ToString();
+                    //Get creator's ID:
+                    cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
+                    string creatorId = cmd.ExecuteScalar().ToString();
+                    //Get creator's name:
+                    cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
+                    creator = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
+                    creator = creator + " " + cmd.ExecuteScalar().ToString();
+                    if (type.Equals("Consultation"))
+                    {
+                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                        string userId = cmd.ExecuteScalar().ToString();
+                        int int_roleId = Convert.ToInt32(roleId);
+                        if (int_roleId == 2)//2 = Physician
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        else if (int_roleId == 3)//3 = Patient
+                        {
+                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (exists > 0)
+                            {
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                            }
+                        }
+                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                    }
+                    else
+                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                }
+            }
+            //Search by message text
+            SortedSet<string> messages = new SortedSet<string>();
+            foreach (string word in words)
+            {
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                    int countMessages = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countMessages; i++)
+                    {
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                        string temp_Id = cmd.ExecuteScalar().ToString();
+                        messages.Add(temp_Id);
+                    }
+                }
+            }
+            int totalMessages = messages.Count;
+            for (int i = 0; i < totalMessages; i++)
+            {
+                //Get the topic ID:
+                string new_id = messages.ElementAt(i);
+                if (!new_id.Equals(id))
+                {
+                    id = new_id;
+                    //Check if the topic of the selected message is deleted or not:
+                    cmd.CommandText = "select topic_isDeleted from Topics where topicId = '" + id + "' ";
+                    int isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
+                    if (isDeleted == 0)//0: False, meaning that the topic is not deleted
+                    {
+                        //Get type:
+                        cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
+                        time = cmd.ExecuteScalar().ToString();
+                        //Get title:
+                        cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
+                        title = cmd.ExecuteScalar().ToString();
+                        //Get type:
+                        cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
+                        type = cmd.ExecuteScalar().ToString();
+                        //Get creator's ID:
+                        cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
+                        string creatorId = cmd.ExecuteScalar().ToString();
+                        //Get creator's name:
+                        cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
+                        creator = cmd.ExecuteScalar().ToString();
+                        cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
+                        creator = creator + " " + cmd.ExecuteScalar().ToString();
+                        if (type.Equals("Consultation"))
+                        {
+                            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
+                            string userId = cmd.ExecuteScalar().ToString();
+                            int int_roleId = Convert.ToInt32(roleId);
+                            if (int_roleId == 2)//2 = Physician
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            else if (int_roleId == 3)//3 = Patient
+                            {
+                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
+                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
+                                if (exists > 0)
+                                {
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                }
+                            }
+                            //Else will be the admin. If admin, just don't show anything about the consultation topics.
+                        }
+                        else
+                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                    }
+                }
+            }
+            dt = removeDuplicateRows(dt, "Time");
             connect.Close();
             grdResults.DataSource = dt;
             grdResults.DataBind();
@@ -594,201 +952,6 @@ namespace NephroNet.Accounts.Physician
                 else
                     dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
             }
-            connect.Close();
-            grdResults.DataSource = dt;
-            grdResults.DataBind();
-            grdResults.Visible = true;
-            rebindValues();
-        }
-        protected void createEverythingTable()
-        {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("Title", typeof(string));
-            dt.Columns.Add("Found in", typeof(string));
-            dt.Columns.Add("Time", typeof(string));
-            dt.Columns.Add("Type", typeof(string));
-            dt.Columns.Add("Creator", typeof(string));
-            string id = "", title = "", type = "", creator = "", time = "";
-            string searchString = txtSearch.Text.Replace("'", "''");
-            connect.Open();
-            SqlCommand cmd = connect.CreateCommand();
-            //Search by title
-            cmd.CommandText = "select count(*) from topics where topic_title like '%" + searchString + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= count; i++)
-            {
-                //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_title like '%" + searchString + "%' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + i + "'";
-                id = cmd.ExecuteScalar().ToString();
-                //Get type:
-                cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
-                time = cmd.ExecuteScalar().ToString();
-                //Get title:
-                cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
-                title = cmd.ExecuteScalar().ToString();
-                //Get type:
-                cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
-                type = cmd.ExecuteScalar().ToString();
-                //Get creator's ID:
-                cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
-                string creatorId = cmd.ExecuteScalar().ToString();
-                //Get creator's name:
-                cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
-                creator = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
-                creator = creator + " " + cmd.ExecuteScalar().ToString();
-                if (type.Equals("Consultation"))
-                {
-                    cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
-                    string userId = cmd.ExecuteScalar().ToString();
-                    int int_roleId = Convert.ToInt32(roleId);
-                    if (int_roleId == 2)//2 = Physician
-                    {
-                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
-                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                        if (exists > 0)
-                        {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
-                        }
-                    }
-                    else if (int_roleId == 3)//3 = Patient
-                    {
-                        cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
-                        int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                        if (exists > 0)
-                        {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
-                        }
-                    }
-                    //Else will be the admin. If admin, just don't show anything about the consultation topics.
-                }
-                else
-                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
-            }
-            //Search by creator
-            cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ";
-            int totalUsers = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= totalUsers; i++)
-            {
-                cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
-                string temp_userId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
-                int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
-                for (int j = 1; j <= totalTopicsForTempUser; j++)
-                {
-                    //Get the topic ID:
-                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
-                    id = cmd.ExecuteScalar().ToString();
-                    //Get type:
-                    cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
-                    time = cmd.ExecuteScalar().ToString();
-                    //Get title:
-                    cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
-                    title = cmd.ExecuteScalar().ToString();
-                    //Get type:
-                    cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
-                    type = cmd.ExecuteScalar().ToString();
-                    //Get creator's ID:
-                    cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
-                    string creatorId = cmd.ExecuteScalar().ToString();
-                    //Get creator's name:
-                    cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
-                    creator = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
-                    creator = creator + " " + cmd.ExecuteScalar().ToString();
-                    if (type.Equals("Consultation"))
-                    {
-                        cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
-                        string userId = cmd.ExecuteScalar().ToString();
-                        int int_roleId = Convert.ToInt32(roleId);
-                        if (int_roleId == 2)//2 = Physician
-                        {
-                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
-                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                            if (exists > 0)
-                            {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
-                            }
-                        }
-                        else if (int_roleId == 3)//3 = Patient
-                        {
-                            cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
-                            int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                            if (exists > 0)
-                            {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
-                            }
-                        }
-                        //Else will be the admin. If admin, just don't show anything about the consultation topics.
-                    }
-                    else
-                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
-                }
-            }
-            //Search by message text
-            cmd.CommandText = "select count(*) from entries where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
-            count = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i = 1; i <= count; i++)
-            {
-                //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + searchString + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
-                string new_id = cmd.ExecuteScalar().ToString();
-                if (!new_id.Equals(id))
-                {
-                    id = new_id;
-                    //Check if the topic of the selected message is deleted or not:
-                    cmd.CommandText = "select topic_isDeleted from Topics where topicId = '" + id + "' ";
-                    int isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (isDeleted == 0)//0: False, meaning that the topic is not deleted
-                    {
-                        //Get type:
-                        cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
-                        time = cmd.ExecuteScalar().ToString();
-                        //Get title:
-                        cmd.CommandText = "select [topic_title] from Topics where topicId = '" + id + "' ";
-                        title = cmd.ExecuteScalar().ToString();
-                        //Get type:
-                        cmd.CommandText = "select [topic_type] from Topics where topicId = '" + id + "' ";
-                        type = cmd.ExecuteScalar().ToString();
-                        //Get creator's ID:
-                        cmd.CommandText = "select [topic_createdBy] from Topics where topicId = '" + id + "' ";
-                        string creatorId = cmd.ExecuteScalar().ToString();
-                        //Get creator's name:
-                        cmd.CommandText = "select user_firstname from users where userId = '" + creatorId + "' ";
-                        creator = cmd.ExecuteScalar().ToString();
-                        cmd.CommandText = "select user_lastname from users where userId = '" + creatorId + "' ";
-                        creator = creator + " " + cmd.ExecuteScalar().ToString();
-                        if (type.Equals("Consultation"))
-                        {
-                            cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
-                            string userId = cmd.ExecuteScalar().ToString();
-                            int int_roleId = Convert.ToInt32(roleId);
-                            if (int_roleId == 2)//2 = Physician
-                            {
-                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and physician_userId = '" + userId + "' ";
-                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                                if (exists > 0)
-                                {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
-                                }
-                            }
-                            else if (int_roleId == 3)//3 = Patient
-                            {
-                                cmd.CommandText = "select count(*) from Consultations where topicId = '" + id + "' and patient_userId = '" + userId + "' ";
-                                int exists = Convert.ToInt32(cmd.ExecuteScalar());
-                                if (exists > 0)
-                                {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
-                                }
-                            }
-                            //Else will be the admin. If admin, just don't show anything about the consultation topics.
-                        }
-                        else
-                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
-                    }
-                }
-            }
-            dt = removeDuplicateRows(dt, "Time");
             connect.Close();
             grdResults.DataSource = dt;
             grdResults.DataBind();

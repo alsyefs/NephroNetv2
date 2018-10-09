@@ -328,20 +328,69 @@ namespace NephroNet.Accounts.Physician
             string result = selectedUser.TrimStart(digits);
             lblFindUserResult.Text = "Selected user: " + (userIndex+1) + " " + result;
             lblFindUserResult.Visible = true;
+            //Get the user's short profile information:
+            int int_roleId = Convert.ToInt32(roleId);
+            string temp_userId = consultationUsers[userIndex].ToString();
+            SqlCommand cmd = connect.CreateCommand();
+            try
+            {
+                connect.Open();
+                //check the user's country:
+                cmd.CommandText = "select user_country from Users where userId = '" + temp_userId + "' ";
+                string country = cmd.ExecuteScalar().ToString();
+                if (int_roleId == 2)//If the current user trying to add another user is a physician:
+                {
+                    cmd.CommandText = "select patientShortProfile_email from PatientShortProfiles where userId = '" + temp_userId + "' ";
+                    string email = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select patientShortProfile_phone from PatientShortProfiles where userId = '" + temp_userId + "' ";
+                    string phone = cmd.ExecuteScalar().ToString();
+                    lblFindUserResult.Text += "<br/>Email: (" + email + ")<br/>Phone#: (" + phone + ")";
+                }
+                else if (int_roleId == 3)//If the current user trying to add another user is a patient
+                {
+                    cmd.CommandText = "select physicianShortProfile_hospitalName from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
+                    string hospitalName = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select physicianShortProfile_hospitalAddress from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
+                    string hospitalAddress = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select physicianShortProfile_officeEmail from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
+                    string officeEmail = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select physicianShortProfile_officePhone from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
+                    string officePhone = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select physicianShortProfile_speciality from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
+                    string speciality = cmd.ExecuteScalar().ToString();
+                    lblFindUserResult.Text += "<br/>Hospital Name: (" + hospitalName + ")<br/>Hospital Address: (" + hospitalAddress + ")" +
+                        "<br/>Office Email: (" + officeEmail + ")<br/>Office Phone#: (" + officePhone + ")" +
+                        "<br/>Speciality: (" + speciality + ")";
+                }
+                connect.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex);
+            }
         }
         protected void txtFindUser_TextChanged(object sender, EventArgs e)
         {
             drpFindUser.Items.Clear();
             consultationUsers.Clear();
             int counter = 0;
-            connect.Open();
+            string searchKeyword = txtFindUser.Text.Replace("'", "''");
+            string[] words = searchKeyword.Split(' ');
+            SortedSet<string> set_results = new SortedSet<string>();
             SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select count(user_firstname + ' ' + user_lastname) from Users where (user_firstname + ' ' + user_lastname) like '%"+txtFindUser.Text.Replace("'", "''")+"%'  ";
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
-            for (int i =1; i <= count; i++)
+            connect.Open();
+            foreach (string word in words)
             {
-                cmd.CommandText = "select userId from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname + ' ' + user_lastname) like '%" + txtFindUser.Text.Replace("'", "''") + "%' ) as t where rowNum = '" + i + "'";
-                int temp_userId = Convert.ToInt32(cmd.ExecuteScalar());
+                if (!string.IsNullOrWhiteSpace(word))
+                {
+                    cmd.CommandText = "select userId from Users where (user_firstname + ' ' + user_lastname) like '%" + word + "%'  ";
+                    string temp_Id = cmd.ExecuteScalar().ToString();
+                    set_results.Add(temp_Id);
+                }
+            }
+            for (int i =0; i < set_results.Count; i++)
+            {
+                string temp_userId = set_results.ElementAt(i);
                 cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from users where userId = '"+temp_userId+"' ";
                 string temp_user = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select loginId from Users where userId = '"+temp_userId+"' ";
