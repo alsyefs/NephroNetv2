@@ -383,9 +383,14 @@ namespace NephroNet.Accounts.Physician
             {
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    cmd.CommandText = "select userId from Users where (user_firstname + ' ' + user_lastname) like '%" + word + "%'  ";
-                    string temp_Id = cmd.ExecuteScalar().ToString();
-                    set_results.Add(temp_Id);
+                    cmd.CommandText = "select count(*) from users where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ";
+                    int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
+                    for (int i = 1; i <= countTopics; i++)
+                    {
+                        cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY userId ASC), * FROM [Users] where (user_firstname+ ' ' +user_lastname) like '%" + word + "%' ) as t where rowNum = '" + i + "'";
+                        string temp_userId = cmd.ExecuteScalar().ToString();
+                        set_results.Add(temp_userId);
+                    }
                 }
             }
             for (int i =0; i < set_results.Count; i++)
