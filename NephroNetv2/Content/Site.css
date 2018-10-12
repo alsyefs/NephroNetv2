@@ -216,3 +216,35 @@ iframe {
     border-color: #9ecaed;
     box-shadow: 0 0 10px #9ecaed;
 }
+.userInformationPopup {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /*position: relative;*/
+    position: absolute;
+    /*top: -200px;*/
+    /*background-color: antiquewhite;*/
+    background: rgb(0, 0, 0); /*This is a fallback color in case  the browser doesn't render the below.*/
+    background: rgba(0, 0, 0, 0.8);
+    /*z-index: 100;*/
+}
+.tableUserInformation {
+    width:30%;
+    margin: auto;
+    margin-top: 15%;
+    margin-left: 25%;
+    margin-right:15%;
+    /*margin-bottom:15%;*/
+    padding-top:10px;
+    padding-left: 10px;
+    padding-right:0;
+    background-color: antiquewhite;
+    display: compact;
+    border-radius: 11px;
+    border: 1px solid #000000;
+    border: solid;
+}
+.userInformationButton {
+    margin-left: 25%;
+}

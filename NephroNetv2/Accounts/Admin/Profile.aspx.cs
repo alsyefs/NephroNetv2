@@ -70,7 +70,7 @@ namespace NephroNet.Accounts.Admin
                     getPhysicianCompleteProfileInformation(profileId);
                 }
                 else
-                    lblRow.Text = "The account you are trying to access is private.";
+                    lblRow.Text = "The profile you are trying to access is private.";
             }
             //if patient, check the PatientCompleteProfiles table to see if the profile is private:
             else if (account_roleId == 3)//3 = Patient
@@ -86,7 +86,7 @@ namespace NephroNet.Accounts.Admin
                     getPatientCompleteProfileInformation(profileId);
                 }
                 else
-                    lblRow.Text = "The account you are trying to access is private.";
+                    lblRow.Text = "The profile you are trying to access is private.";
             }
             else //This account you are trying to access belongs to an admin
             {
@@ -132,17 +132,20 @@ namespace NephroNet.Accounts.Admin
                 string hypertension = completeProfile.Hypertension;
                 string gN = completeProfile.GN;
                 string physicianId = completeProfile.PhysicianID;
+                List<string[]> experiences = new List<string[]>();
+                if (completeProfile.Experience != null)
+                    experiences = completeProfile.Experience;
                 string str_isPrivate = "";
                 if (isPrivate == 1)
                     str_isPrivate = "Private";
                 else
                     str_isPrivate = "Viewable by Admins";
                 row += row_start + col_start + "Physician Complete Profile Information: " + col_end + row_end;
-                row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                row += row_start + col_start + "Profile is: " + col_end + col_start + str_isPrivate + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(dialysis))
                     row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(homeDialysis))
-                    row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                    row += row_start + col_start + "Hemodialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(transplantation))
                     row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(hypertension))
@@ -151,6 +154,19 @@ namespace NephroNet.Accounts.Admin
                     row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(physicianId))
                     row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+                if (experiences != null && experiences.Count > 0)
+                {
+                    row += "<tr><td><hr /></td><td><hr /></td></tr>";
+                    row += row_start + col_start + "Physician Previous Experience: " + col_end + row_end;
+                    for (int i = 0; i < experiences.Count; i++)
+                    {
+                        row += row_start + col_start + "Hospital Name: " + col_end + col_start + experiences[i][0]+ col_end + row_end;
+                        row += row_start + col_start + "Hospital Address: " + col_end + col_start + experiences[i][1] + col_end + row_end;
+                        row += row_start + col_start + "Years of Experience: " + col_end;
+                        row += col_start + "From : (" + experiences[i][2] + ") ";
+                        row += " To: (" + experiences[i][3] + ") " + col_end + row_end;
+                    }
+                }
                 lblRow.Text += row;
             }
         }
@@ -192,7 +208,7 @@ namespace NephroNet.Accounts.Admin
                 else
                     str_isPrivate = "Viewable by Admins";
                 row += row_start + col_start + "Patient Complete Profile Information: " + col_end + row_end;
-                row += row_start + col_start + "Account is: " + col_end + col_start + str_isPrivate + col_end + row_end;
+                row += row_start + col_start + "Profile is: " + col_end + col_start + str_isPrivate + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(highBloodPressure))
                     row += row_start + col_start + "High Blood Pressure: " + col_end + col_start + highBloodPressure + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(diabetes))

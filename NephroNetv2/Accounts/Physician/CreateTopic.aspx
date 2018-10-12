@@ -17,6 +17,7 @@
                 <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 <asp:UpdatePanel ID="upContent" UpdateMode="Conditional" runat="server">
                     <ContentTemplate>
+                        <div runat="server" id="divMain" >
                         <table>
                             <tr>
                                 <td><asp:Label ID="lblTitle" runat="server" Text="Title" Width ="100%"></asp:Label></td>
@@ -58,6 +59,14 @@
                                 <td><asp:Label ID="lblDescriptionError" runat="server" Text="Invalid input: Please type a description." Visible="false" ForeColor="red" Width ="100%"></asp:Label></td>
                             </tr>
                             </table>
+                            </div>
+                        <div runat="server" id="divUserInformation" class="userInformationPopup">
+                            <div runat="server" class="tableUserInformation">
+                                <asp:Label ID="lblUserInformation" runat="server" Text="" Width ="100%"></asp:Label>
+                                <asp:Button ID="btnOk" runat="server" Text="Ok" BackColor="Green" CssClass="userInformationButton" Font-Bold="True" Font-Size="Medium" Width ="140px" OnClick="btnOk_Click" />
+                                <br />
+                            </div>
+                        </div>
                     </ContentTemplate>
                     <Triggers>
                         <%--<asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />--%>

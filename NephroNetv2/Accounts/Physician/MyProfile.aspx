@@ -54,7 +54,7 @@
                                         <td ><asp:Label ID="lblDialysisError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>
-                                        <td ><asp:Label ID="lblHomeDialysis" runat="server" Text="Home Dialysis" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:Label ID="lblHomeDialysis" runat="server" Text="Hemodialysis" Font-Size="Medium" Width="100%"></asp:Label></td>
                                         <td ><asp:TextBox ID="txtHomeDialysis" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblHomeDialysisError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
@@ -76,9 +76,43 @@
                                     </tr>
                                     <tr>
                                         <td ><asp:Label ID="lblPhysicianId" runat="server" Text="Physician ID" Font-Size="Medium" Width="100%"></asp:Label></td>
-                                        <td ><asp:TextBox ID="txtPhysicianId" TextMode="MultiLine" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
+                                        <td ><asp:TextBox ID="txtPhysicianId" runat="server" Font-Size="Medium" Width="100%" Enabled="false"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblPhysicianIdError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
+                                    <%--Start of "Previous Experience"--%>
+                                    <tr><td> </td><td><hr /></td></tr>
+                                    <tr>
+                                        <td ><asp:Label ID="lblExperienceTitle" runat="server" Text="Previous Experience:" Font-Underline="true" Font-Bold="true" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                    </tr>
+                                    <tr>
+                                        <td ><asp:Label ID="lblHospitalName" runat="server" Text="Hospital Name" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:TextBox ID="txtHospitalName" runat="server" Font-Size="Medium" Width="100%" ></asp:TextBox></td>
+                                        <td ><asp:Label ID="lblHospitalNameError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                    </tr>
+                                    <tr>
+                                        <td ><asp:Label ID="lblHospitalAddress" runat="server" Text="Hospital Full Address" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                        <td ><asp:TextBox ID="txtHospitalAddress" runat="server" TextMode="MultiLine" Font-Size="Medium" Width="100%" ></asp:TextBox></td>
+                                        <td ><asp:Label ID="lblHospitalAddressError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
+                                    </tr>
+                                    <tr>
+                                        <td ><asp:Label ID="lblYearsOfExperience" runat="server" Text="Years of Experience" Font-Size="Medium"></asp:Label></td>
+                                        <td ><asp:Label ID="lblYearsOfExperienceFrom" runat="server" Text="From " Font-Size="Medium" ></asp:Label>
+                                        <asp:TextBox ID="txtYearsOfExperienceFrom" runat="server" Font-Size="Medium" type="number" MaxLength="4" min="1900" max="2100"></asp:TextBox>
+                                        <asp:Label ID="lblYearsOfExperienceTo" runat="server" Text=" To " Font-Size="Medium" ></asp:Label>
+                                        <asp:TextBox ID="txtYearsOfExperienceTo" runat="server" Font-Size="Medium" type="number" MaxLength="4" min="1900" max="2100"></asp:TextBox></td>
+                                        <td ><asp:Label ID="lblYearsOfExperienceError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" ></asp:Label></td>
+                                    </tr>
+                                    <tr>
+                                        <td> </td>
+                                        <td><asp:Button ID="btnAddExperience" runat="server" Text="Add This Experience" BackColor="orange" Font-Bold="True" Font-Size="Medium" Width="100%" OnClick="btnAddExperience_Click"  /></td>
+                                    </tr>
+                                    <tr>
+                                        <td> </td>
+                                        <td><asp:ListBox ID="drpExperience" runat="server" Width="100%" SelectionMode="Multiple" Height="250px" OnSelectedIndexChanged="drpExperience_SelectedIndexChanged"></asp:ListBox></td>
+                                        <td><asp:Button ID="btnRemoveExperience" runat="server" text="Remove selected Experience" ForeColor="Red" Width="220px" Font-Size="Medium" OnClick="btnRemoveExperience_Click" /></td>
+                                    </tr>
+                                    <%--End of "Previous Experience"--%>
+                                    <tr><td> </td><td><hr /></td></tr>
                                     <tr>
                                         <td> </td>
                                         <td><asp:Button ID="btnSetNewPassword" runat="server" Text="Set New Password" BackColor="yellow" Font-Bold="True" Font-Size="Medium" Width="100%" OnClick="btnSetNewPassword_Click" /></td>
@@ -216,6 +250,11 @@
                         <asp:AsyncPostBackTrigger ControlID="btnSaveUpdatePassword" EventName="Click" />
                         <asp:AsyncPostBackTrigger ControlID="btnCancelUpdatePassword" EventName="Click" />
                         <asp:AsyncPostBackTrigger ControlID="btnSubmitPassword" EventName="Click" />
+                        <%--Experience Controls:--%>
+                        <asp:AsyncPostBackTrigger ControlID="btnAddExperience" EventName="Click" />
+                        <asp:AsyncPostBackTrigger ControlID="drpExperience" EventName="SelectedIndexChanged" />
+                        <asp:AsyncPostBackTrigger ControlID="btnRemoveExperience" EventName="Click" />
+                        
                     </Triggers>
                 </asp:UpdatePanel>
                 <%--Content end--%>

@@ -22,11 +22,13 @@ namespace NephroNet.Accounts.Physician
         static bool requestedToViewProfileInformation = false;
         static bool requestedToViewEditProfileInformation = false;
         static protected string confirmedPassword = "";
+        static List<string[]> experiences = new List<string[]>();
         protected void Page_Load(object sender, EventArgs e)
         {
             initialPageAccess();
             if (!Page.IsPostBack)
             {
+                experiences = new List<string[]>();
                 confirmedPassword = "";
                 showInformation();
             }
@@ -202,6 +204,16 @@ namespace NephroNet.Accounts.Physician
             string hypertension = completeProfile.Hypertension;
             string gN = completeProfile.GN;
             string physicianId = completeProfile.PhysicianID;
+            int numberOfExperiences = 0;
+            if (experiences != null && experiences.Count > 0)
+                experiences.Clear();
+            if (completeProfile.Experience != null && completeProfile.Experience.Count > 0)
+            {
+                experiences = completeProfile.Experience;
+                numberOfExperiences = completeProfile.Experience.Count;
+            }
+            if (drpExperience.Items.Count > 0)
+                drpExperience.Items.Clear();
             if (isPrivate == 1)
             {
                 chkIsPrivate.Checked = true;
@@ -238,6 +250,30 @@ namespace NephroNet.Accounts.Physician
                         txtGN.Text = gN;
                     if (!string.IsNullOrWhiteSpace(physicianId))
                         txtPhysicianId.Text = physicianId;
+                    if (experiences != null && experiences.Count > 0)
+                    {
+                        //Copy the list to a new temp one:
+                        List<string[]> temp = new List<string[]>(experiences);
+                        //Clear the encrypted data to refill it with decrypted data:
+                        experiences.Clear();
+                        for (int i = 0; i < numberOfExperiences; i++)
+                        {
+                            string[] result = new string[] {
+                                Encryption.decrypt(temp[i][0], decryptionKey),
+                                Encryption.decrypt(temp[i][1], decryptionKey),
+                                Encryption.decrypt(temp[i][2], decryptionKey),
+                                Encryption.decrypt(temp[i][3], decryptionKey) };
+                            experiences.Add(result);
+                            drpExperience.Items.Add(string.Join(" ", result));
+                        }
+                        //for (int i = 0; i < numberOfExperiences; i++)
+                        //{
+                        //    string[] result = new string[] { Encryption.decrypt(experiences[i][0], decryptionKey), Encryption.decrypt(experiences[i][1], decryptionKey),
+                        //        Encryption.decrypt(experiences[i][2], decryptionKey), Encryption.decrypt(experiences[i][3], decryptionKey) };
+                        //    //experiences.Add(result);
+                        //    drpExperience.Items.Add(string.Join(" ", result));
+                        //}
+                    }
                     txtPassword.Text = "";
                     requestedToViewEditProfileInformation = false;
                 }
@@ -261,6 +297,25 @@ namespace NephroNet.Accounts.Physician
                     txtGN.Text = gN;
                 if (!string.IsNullOrWhiteSpace(physicianId))
                     txtPhysicianId.Text = physicianId;
+                if(experiences != null)
+                {
+                    ////REMOVE
+                    //string decryptionKey = confirmedPassword;
+                    //for (int i = 0; i < numberOfExperiences; i++)
+                    //{
+                    //    string[] result = new string[] { Encryption.decrypt(experiences[i][0], decryptionKey), Encryption.decrypt(experiences[i][1], decryptionKey),
+                    //            Encryption.decrypt(experiences[i][2], decryptionKey), Encryption.decrypt(experiences[i][3], decryptionKey) };
+                    //    experiences.Add(result);
+                    //    drpExperience.Items.Add(string.Join(" ", result));
+                    //}
+                    ////REMOVE
+                    for (int i=0; i < numberOfExperiences; i++)
+                    {
+                        string[] result = new string[] { experiences[i][0], experiences[i][1], experiences[i][2], experiences[i][3] };
+                        //experiences.Add(result);
+                        drpExperience.Items.Add(string.Join(" ", result));
+                    }
+                }
                 txtPassword.Text = "";
                 requestedToViewEditProfileInformation = false;
             }
@@ -320,6 +375,9 @@ namespace NephroNet.Accounts.Physician
                     string hypertension = txtHypertension.Text.Replace("'", "''");
                     string gN = txtGN.Text.Replace("'", "''");
                     string physicianId = txtPhysicianId.Text.Replace("'", "''");
+                    int numberOfExperiences = 0;
+                    if (drpExperience.Items != null && drpExperience.Items.Count > 0)
+                        numberOfExperiences = drpExperience.Items.Count;
                     int isPrivate = 0;
                     if (chkIsPrivate.Checked)
                     {
@@ -332,7 +390,7 @@ namespace NephroNet.Accounts.Physician
                         }
                         else
                         {
-                            //Now, decrypt using the encryption key:
+                            //Now, encrypt using the encryption key:
                             string encryptionKey = confirmedPassword;
                             dialysis = Encryption.encrypt(dialysis, encryptionKey);
                             homeDialysis = Encryption.encrypt(homeDialysis, encryptionKey);
@@ -347,6 +405,18 @@ namespace NephroNet.Accounts.Physician
                                 " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
                             cmd.ExecuteScalar();
                             //if there is a related record in another table, update it.
+                            //To update a list of records, delete all old records:
+                            cmd.CommandText = "delete from PhysicianExperiences where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                            cmd.ExecuteScalar();
+                            //Now, insert the new values:
+                            for (int i = 0; i < experiences.Count; i++)
+                            {
+                                cmd.CommandText = "insert into PhysicianExperiences (physicianExperience_hospitalName, physicianExperience_hospitalAddress, " +
+                                    "physicianExperience_fromYear, physicianExperience_toYear, physicianCompleteProfileId) values " +
+                                    "('"+ Encryption.encrypt(experiences[i][0], encryptionKey).Replace("'", "''")+ "', '" + Encryption.encrypt(experiences[i][1], encryptionKey).Replace("'", "''") +
+                                    "', '" + Encryption.encrypt(experiences[i][2], encryptionKey).Replace("'", "''") + "', '" + Encryption.encrypt(experiences[i][3], encryptionKey).Replace("'", "''") + "', '" + completeProfileId + "')";
+                                cmd.ExecuteScalar();
+                            }
                             lblSaveCompleteProfileMessage.Visible = true;
                             txtPassword.Text = "";
                             requestedToSaveProfileInformation = false;
@@ -362,6 +432,18 @@ namespace NephroNet.Accounts.Physician
                             " where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
                         cmd.ExecuteScalar();
                         //if there is a related record in another table, update it.
+                        //To update a list of records, delete all old records:
+                        cmd.CommandText = "delete from PhysicianExperiences where [physicianCompleteProfileId] = '" + completeProfileId + "' ";
+                        cmd.ExecuteScalar();
+                        //Now, insert the new values:
+                        for (int i = 0; i < experiences.Count; i++)
+                        {
+                            cmd.CommandText = "insert into PhysicianExperiences (physicianExperience_hospitalName, physicianExperience_hospitalAddress, " +
+                                "physicianExperience_fromYear, physicianExperience_toYear, physicianCompleteProfileId) values " +
+                                "('" + experiences[i][0].Replace("'", "''") + "', '" + experiences[i][1].Replace("'", "''") +
+                                "', '" + experiences[i][2].Replace("'", "''") + "', '" + experiences[i][3].Replace("'", "''") + "', '" + completeProfileId + "')";
+                            cmd.ExecuteScalar();
+                        }
                         lblSaveCompleteProfileMessage.Visible = true;
                     }
                 }
@@ -734,6 +816,125 @@ namespace NephroNet.Accounts.Physician
                 lblPasswordError.Visible = false;
             }
         }
+        protected bool checkExperienceInput()
+        {
+            lblHospitalNameError.Visible = false;
+            lblHospitalAddressError.Visible = false;
+            lblYearsOfExperienceFrom.Visible = false;
+            bool correct = true;
+            if (string.IsNullOrWhiteSpace(txtHospitalName.Text))
+            {
+                correct = false;
+                lblHospitalNameError.Visible = true;
+                lblHospitalNameError.Text = "Invalid input: Please type the hospital name.";
+            }
+            if (string.IsNullOrWhiteSpace(txtHospitalAddress.Text))
+            {
+                correct = false;
+                lblHospitalAddressError.Visible = true;
+                lblHospitalAddressError.Text = "Invalid input: Please type the hospital address.";
+            }
+            if (string.IsNullOrWhiteSpace(txtYearsOfExperienceFrom.Text))
+            {
+                correct = false;
+                lblYearsOfExperienceError.Visible = true;
+                lblYearsOfExperienceError.Text = "Invalid input: Please type the year \"From\".";
+            }
+            else
+            {
+                if (Convert.ToInt32(txtYearsOfExperienceFrom.Text) < 1900 || Convert.ToInt32(txtYearsOfExperienceFrom.Text) > DateTime.Now.Year)
+                {
+                    correct = false;
+                    lblYearsOfExperienceError.Visible = true;
+                    lblYearsOfExperienceError.Text = "Invalid input: Please type a year between 1900 to the current year in \"From\".";
+                }
+            }
+            if (string.IsNullOrWhiteSpace(txtYearsOfExperienceTo.Text))
+            {
+                correct = false;
+                lblYearsOfExperienceError.Visible = true;
+                lblYearsOfExperienceError.Text = "Invalid input: Please type the year \"To\".";
+            }
+            else
+            {
+                if (Convert.ToInt32(txtYearsOfExperienceTo.Text) < 1900 || Convert.ToInt32(txtYearsOfExperienceTo.Text) > DateTime.Now.Year)
+                {
+                    correct = false;
+                    lblYearsOfExperienceError.Visible = true;
+                    lblYearsOfExperienceError.Text = "Invalid input: Please type a year between 1900 to the current year in \"To\".";
+                }
+            }
+            if (correct)
+            {
+                if (Convert.ToInt32(txtYearsOfExperienceTo.Text) < Convert.ToInt32(txtYearsOfExperienceFrom.Text))
+                {
+                    correct = false;
+                    lblYearsOfExperienceError.Visible = true;
+                    lblYearsOfExperienceError.Text = "Invalid input: Please type a year in \"From\" less than or equal to a year in \"To\".";
+                }
+            }
+            return correct;
+        }
+        protected void btnAddExperience_Click(object sender, EventArgs e)
+        {
+            if(checkExperienceInput())
+            {
+                //string hospitalName = txtHospitalName.Text.Replace("'", "''");
+                //string hospitalAddress = txtHospitalAddress.Text.Replace("'", "''");
+                //string yearFrom = txtYearsOfExperienceFrom.Text.Replace("'", "''");
+                //string yearTo = txtYearsOfExperienceTo.Text.Replace("'", "''");
+                string hospitalName = txtHospitalName.Text;
+                string hospitalAddress = txtHospitalAddress.Text;
+                string yearFrom = txtYearsOfExperienceFrom.Text;
+                string yearTo = txtYearsOfExperienceTo.Text;
+                string[] result = new string[] { hospitalName, hospitalAddress, yearFrom, yearTo };
+                try
+                {
+                    experiences.Add(result);
+                    //string [] test = experiences[1];
+                    //result = result.Except(new string[] { result[0] }).ToArray();
+                    drpExperience.Items.Add(string.Join(" ", result));
+                    txtHospitalName.Text = "";
+                    txtHospitalAddress.Text = "";
+                    txtYearsOfExperienceFrom.Text = "";
+                    txtYearsOfExperienceTo.Text = "";
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine("Error: "+ ex);
+                }
+                
+            }
+
+        }
+        protected void btnRemoveExperience_Click(object sender, EventArgs e)
+        {
+
+            for (int i = drpExperience.Items.Count; i >=0 ; i--)
+            {
+                int indexToRemove = drpExperience.SelectedIndex;
+                if (indexToRemove > -1)
+                {
+                    drpExperience.Items.RemoveAt(indexToRemove);
+                    experiences.RemoveAt(indexToRemove);
+                }
+            }
+            //for (int i = 0; i < drpExperience.Items.Count; i++)
+            //{
+            //    int indexToRemove = drpExperience.SelectedIndex;
+            //    if (indexToRemove > -1)
+            //    {
+            //        drpExperience.Items.RemoveAt(indexToRemove);
+            //        experiences.RemoveAt(indexToRemove);
+            //    }
+            //}
+        }
+        protected void drpExperience_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+
         protected void btnSaveEditCompleteProfile_Click(object sender, EventArgs e)
         {
             requestedToSaveProfileInformation = true;
@@ -783,6 +984,10 @@ namespace NephroNet.Accounts.Physician
             string gN = completeProfile.GN;
             string physicianId = completeProfile.PhysicianID;
             string str_isPrivate = "";
+            if(completeProfile.Experience != null)
+                experiences = completeProfile.Experience;
+            if (drpExperience.Items.Count > 0)
+                drpExperience.Items.Clear();
             if (isPrivate == 1)
                 str_isPrivate = "Private";
             else
@@ -811,7 +1016,7 @@ namespace NephroNet.Accounts.Physician
                     if (!string.IsNullOrWhiteSpace(dialysis))
                         row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
                     if (!string.IsNullOrWhiteSpace(homeDialysis))
-                        row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                        row += row_start + col_start + "Hemodialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
                     if (!string.IsNullOrWhiteSpace(transplantation))
                         row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
                     if (!string.IsNullOrWhiteSpace(hypertension))
@@ -820,6 +1025,19 @@ namespace NephroNet.Accounts.Physician
                         row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
                     if (!string.IsNullOrWhiteSpace(physicianId))
                         row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+                    if (experiences != null && experiences.Count > 0)
+                    {
+                        row += "<tr><td><hr /></td><td><hr /></td></tr>";
+                        row += row_start + col_start + "Physician Previous Experience: " + col_end + row_end;
+                        for (int i = 0; i < experiences.Count; i++)
+                        {
+                            row += row_start + col_start + "Hospital Name: " + col_end + col_start + Encryption.decrypt(experiences[i][0], decryptionKey) + col_end + row_end;
+                            row += row_start + col_start + "Hospital Address: " + col_end + col_start + Encryption.decrypt(experiences[i][1], decryptionKey) + col_end + row_end;
+                            row += row_start + col_start + "Years of Experience: " + col_end;
+                            row += col_start + "From : (" + Encryption.decrypt(experiences[i][2], decryptionKey)+") ";
+                            row += " To: (" +  Encryption.decrypt(experiences[i][3], decryptionKey)+") " + col_end + row_end;
+                        }
+                    }
                     lblRow.Text += row;
                     txtPassword.Text = "";
                     requestedToViewProfileInformation = false;
@@ -833,7 +1051,7 @@ namespace NephroNet.Accounts.Physician
                 if (!string.IsNullOrWhiteSpace(dialysis))
                     row += row_start + col_start + "Dialysis: " + col_end + col_start + dialysis + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(homeDialysis))
-                    row += row_start + col_start + "Home Dialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
+                    row += row_start + col_start + "Hemodialysis: " + col_end + col_start + homeDialysis + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(transplantation))
                     row += row_start + col_start + "Transplantation: " + col_end + col_start + transplantation + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(hypertension))
@@ -842,6 +1060,19 @@ namespace NephroNet.Accounts.Physician
                     row += row_start + col_start + "GN: " + col_end + col_start + gN + col_end + row_end;
                 if (!string.IsNullOrWhiteSpace(physicianId))
                     row += row_start + col_start + "Physician ID: " + col_end + col_start + physicianId + col_end + row_end;
+                if (experiences != null && experiences.Count > 0)
+                {
+                    row += "<tr><td><hr /></td><td><hr /></td></tr>";
+                    row += row_start + col_start + "Physician Previous Experience: " + col_end + row_end;
+                    for (int i = 0; i < experiences.Count; i++)
+                    {
+                        row += row_start + col_start + "Hospital Name: " + col_end + col_start + experiences[i][0] + col_end + row_end;
+                        row += row_start + col_start + "Hospital Address: " + col_end + col_start + experiences[i][1] + col_end + row_end;
+                        row += row_start + col_start + "Years of Experience: " + col_end;
+                        row += col_start + "From : (" + experiences[i][2] + ") ";
+                        row += " To: (" + experiences[i][3] + ") " + col_end + row_end;
+                    }
+                }
                 lblRow.Text += row;
                 txtPassword.Text = "";
                 requestedToViewProfileInformation = false;

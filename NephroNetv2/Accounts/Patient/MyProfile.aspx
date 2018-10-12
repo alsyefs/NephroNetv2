@@ -95,7 +95,7 @@
                                     </tr>
                                     <tr>
                                         <td ><asp:Label ID="lblPatientId" runat="server" Text="Patient ID" Font-Size="Medium" Width="100%"></asp:Label></td>
-                                        <td ><asp:TextBox ID="txtPatientId" runat="server" Font-Size="Medium" Width="100%"></asp:TextBox></td>
+                                        <td ><asp:TextBox ID="txtPatientId" runat="server" Font-Size="Medium" Width="100%" Enabled="false"></asp:TextBox></td>
                                         <td ><asp:Label ID="lblPatientIdError" runat="server" Text=" " Visible="false" ForeColor="Red" Font-Size="Medium" Width="100%"></asp:Label></td>
                                     </tr>
                                     <tr>

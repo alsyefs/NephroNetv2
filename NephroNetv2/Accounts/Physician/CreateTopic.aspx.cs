@@ -23,6 +23,7 @@ namespace NephroNet.Accounts.Physician
         protected void Page_Load(object sender, EventArgs e)
         {
             initialAccess();
+            divUserInformation.Visible = false;
         }
         protected void initialAccess()
         {
@@ -344,7 +345,11 @@ namespace NephroNet.Accounts.Physician
                     string email = cmd.ExecuteScalar().ToString();
                     cmd.CommandText = "select patientShortProfile_phone from PatientShortProfiles where userId = '" + temp_userId + "' ";
                     string phone = cmd.ExecuteScalar().ToString();
-                    lblFindUserResult.Text += "<br/>Email: (" + email + ")<br/>Phone#: (" + phone + ")";
+                    cmd.CommandText = "select patientShortProfile_gender from PatientShortProfiles where userId = '" + temp_userId + "' ";
+                    string gender = cmd.ExecuteScalar().ToString();
+                    cmd.CommandText = "select patientShortProfile_dateOfBirth from PatientShortProfiles where userId = '" + temp_userId + "' ";
+                    string dob = cmd.ExecuteScalar().ToString();
+                    showUserInformationPatient(email, phone, gender, dob);
                 }
                 else if (int_roleId == 3)//If the current user trying to add another user is a patient
                 {
@@ -358,9 +363,7 @@ namespace NephroNet.Accounts.Physician
                     string officePhone = cmd.ExecuteScalar().ToString();
                     cmd.CommandText = "select physicianShortProfile_speciality from PhysicianShortProfiles where userId = '" + temp_userId + "' ";
                     string speciality = cmd.ExecuteScalar().ToString();
-                    lblFindUserResult.Text += "<br/>Hospital Name: (" + hospitalName + ")<br/>Hospital Address: (" + hospitalAddress + ")" +
-                        "<br/>Office Email: (" + officeEmail + ")<br/>Office Phone#: (" + officePhone + ")" +
-                        "<br/>Speciality: (" + speciality + ")";
+                    showUserInformationPhysician(hospitalName, hospitalAddress, officeEmail, officePhone, speciality);
                 }
                 connect.Close();
             }
@@ -368,6 +371,33 @@ namespace NephroNet.Accounts.Physician
             {
                 Console.WriteLine("Error: " + ex);
             }
+        }
+        protected void showUserInformationPhysician(string hospitalName, string hospitalAddress, string officeEmail, string officePhone, string speciality)
+        {
+            divUserInformation.Visible = true;
+            lblUserInformation.Text =
+                "<table>" +
+                "<tr><td>Hospital Name: </td><td>" + hospitalName + "</td></tr>" +
+                "<tr><td>Hospital Address: </td><td>" + hospitalAddress + "</td></tr>" +
+                "<tr><td>Office Email: </td><td>" + officeEmail + "</td></tr>" +
+                "<tr><td>Office Phone#: </td><td>" + officePhone + "</td></tr>" +
+                "<tr><td>Speciality: </td><td>" + speciality + "</td></tr>" +
+                "</table>";
+        }
+        protected void showUserInformationPatient(string email, string phone, string gender, string dob)
+        {
+            divUserInformation.Visible = true;
+            lblUserInformation.Text =
+                "<table>" +
+                "<tr><td>Email: </td><td>" + email + "</td></tr>" +
+                "<tr><td>Phone#: </td><td>" + phone + "</td></tr>" +
+                "<tr><td>Gender: </td><td>" + gender + "</td></tr>" +
+                "<tr><td>Date of birth: </td><td>" + dob + "</td></tr>" +
+                "</table>";
+        }
+        protected void btnOk_Click(object sender, EventArgs e)
+        {
+            divUserInformation.Visible = false;
         }
         protected void txtFindUser_TextChanged(object sender, EventArgs e)
         {

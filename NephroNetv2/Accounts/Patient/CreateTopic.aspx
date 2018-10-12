@@ -17,6 +17,7 @@
                 <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
                 <asp:UpdatePanel ID="upContent" UpdateMode="Conditional" runat="server">
                     <ContentTemplate>
+                        <div runat="server" id="divMain" >
                         <table>
                             <tr>
                                 <td><asp:Label ID="lblTitle" runat="server" Text="Title" Width ="100%"></asp:Label></td>
@@ -58,12 +59,21 @@
                                 <td><asp:Label ID="lblDescriptionError" runat="server" Text="Invalid input: Please type a description." Visible="false" ForeColor="red" Width ="100%"></asp:Label></td>
                             </tr>
                             </table>
+                            </div>
+                        <div runat="server" id="divUserInformation" class="userInformationPopup">
+                            <div runat="server" class="tableUserInformation">
+                                <asp:Label ID="lblUserInformation" runat="server" Text="" Width ="100%"></asp:Label>
+                                <asp:Button ID="btnOk" runat="server" Text="Ok" BackColor="Green" CssClass="userInformationButton" Font-Bold="True" Font-Size="Medium" Width ="140px" OnClick="btnOk_Click" />
+                                <br />
+                            </div>
+                        </div>
                     </ContentTemplate>
                     <Triggers>
                         <%--<asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />--%>
                         <asp:AsyncPostBackTrigger ControlID="drpType" EventName="SelectedIndexChanged" />
                         <asp:AsyncPostBackTrigger ControlID="txtFindUser" EventName="TextChanged" />
                         <asp:AsyncPostBackTrigger ControlID="drpFindUser" EventName="SelectedIndexChanged" />
+                        <asp:AsyncPostBackTrigger ControlID="btnOk" EventName="Click" />
                     </Triggers>
                 </asp:UpdatePanel>
                 <table>
@@ -77,7 +87,7 @@
                             </tr>
                             <tr>
                                 <%--Submit--%>
-                                <td><asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Width ="100%" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();"/></td>
+                                <td><asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Width ="140px" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();"/></td>
                                 <td> </td>
                                 <%--Cancel button--%>
                                 <td><asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Width ="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();"/></td>
