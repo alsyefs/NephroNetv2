@@ -11,7 +11,7 @@ using System.Web.UI.WebControls;
 
 namespace NephroNet.Accounts.Admin
 {
-    public partial class Search : System.Web.UI.Page
+    public partial class SearchArchive : System.Web.UI.Page
     {
         static string conn = "";
         SqlConnection connect = new SqlConnection(conn);
@@ -228,7 +228,7 @@ namespace NephroNet.Accounts.Admin
             SqlCommand cmd = connect.CreateCommand();
             string id = "", title = "", creator = "";
             string searchString = txtSearch.Text.Replace("'", "''");
-            if (grdResults.Rows.Count > 0)
+            if(grdResults.Rows.Count > 0)
             {
                 //Hide the header called "User ID":
                 grdResults.HeaderRow.Cells[5].Visible = false;
@@ -253,7 +253,7 @@ namespace NephroNet.Accounts.Admin
                 id = grdResults.Rows[row].Cells[5].Text;
                 HyperLink topicLink = new HyperLink();
                 topicLink.Text = title + " ";
-                topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
+                topicLink.NavigateUrl = "ViewArchivedTopic.aspx?id=" + id;
                 grdResults.Rows[row].Cells[0].Controls.Add(topicLink);
             }
             connect.Close();
@@ -272,11 +272,11 @@ namespace NephroNet.Accounts.Admin
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
-                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                         int temp_count = Convert.ToInt32(cmd.ExecuteScalar());
                         for (int i = 1; i <= temp_count; i++)
                         {
-                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
                             string temp_Id = cmd.ExecuteScalar().ToString();
                             set_results.Add(temp_Id);
                         }
@@ -316,11 +316,11 @@ namespace NephroNet.Accounts.Admin
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
-                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0 ";
                         int countEntries = Convert.ToInt32(cmd.ExecuteScalar());
                         for (int i = 1; i <= countEntries; i++)
                         {
-                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
                             string temp_Id = cmd.ExecuteScalar().ToString();
                             set_results.Add(temp_Id);
                         }
@@ -333,7 +333,7 @@ namespace NephroNet.Accounts.Admin
                 DateTime start_time = calFrom.SelectedDate, end_time = calTo.SelectedDate;
                 if (!start_time.ToString().Equals("1/1/0001 12:00:00 AM") && !end_time.ToString().Equals("1/1/0001 12:00:00 AM"))
                 {
-                    cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                     count = Convert.ToInt32(cmd.ExecuteScalar());
                 }
             }
@@ -346,11 +346,11 @@ namespace NephroNet.Accounts.Admin
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
-                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                        cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                         int temp_count = Convert.ToInt32(cmd.ExecuteScalar());
                         for (int i = 1; i <= temp_count; i++)
                         {
-                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                            cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
                             string temp_Id = cmd.ExecuteScalar().ToString();
                             topicIds.Add(temp_Id);
                         }
@@ -382,11 +382,11 @@ namespace NephroNet.Accounts.Admin
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
-                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                        cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0 ";
                         int countEntries = Convert.ToInt32(cmd.ExecuteScalar());
                         for (int i = 1; i <= countEntries; i++)
                         {
-                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                            cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [entries] where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
                             string temp_Id = cmd.ExecuteScalar().ToString();
                             entryIds.Add(temp_Id);
                         }
@@ -402,7 +402,7 @@ namespace NephroNet.Accounts.Admin
                 {
                     cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PhysicianCompleteProfileId ASC), * FROM [PhysicianCompleteProfiles] where physicianCompleteProfile_physicianId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
                     string temp_userId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0 ";
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1 ";
                     int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                     count += totalTopicsForTempUser;
                 }
@@ -415,7 +415,7 @@ namespace NephroNet.Accounts.Admin
                 {
                     cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PatientCompleteProfileId ASC), * FROM [PatientCompleteProfiles] where patientCompleteProfile_patientId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
                     string temp_userId = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0 ";
+                    cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1 ";
                     int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                     count += totalTopicsForTempUser;
                 }
@@ -442,11 +442,11 @@ namespace NephroNet.Accounts.Admin
             {
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                     int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
                     for (int i = 1; i <= countTopics; i++)
                     {
-                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
                         string temp_userId = cmd.ExecuteScalar().ToString();
                         set_results.Add(temp_userId);
                     }
@@ -541,12 +541,12 @@ namespace NephroNet.Accounts.Admin
             for (int i = 0; i < totalUsers; i++)
             {
                 string temp_userId = set_results.ElementAt(i);
-                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1 ";
                 int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalTopicsForTempUser; j++)
                 {
                     //Get the topic ID:
-                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1) as t where rowNum = '" + j + "'";
                     id = cmd.ExecuteScalar().ToString();
                     //Get type:
                     cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
@@ -619,11 +619,11 @@ namespace NephroNet.Accounts.Admin
             {
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0 ";
                     int count_temp = Convert.ToInt32(cmd.ExecuteScalar());
                     for (int i = 1; i <= count_temp; i++)
                     {
-                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
                         string temp_userId = cmd.ExecuteScalar().ToString();
                         set_results.Add(temp_userId);
                     }
@@ -640,8 +640,8 @@ namespace NephroNet.Accounts.Admin
                     //Check if the topic of the selected message is deleted or not:
                     cmd.CommandText = "select topic_isDeleted from Topics where topicId = '" + id + "' ";
                     int isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (isDeleted == 0)//0: False, meaning that the topic is not deleted
-                    {
+                    //if (isDeleted == 1)//1: True, meaning that the topic is deleted
+                    //{
                         //Get type:
                         cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
                         time = cmd.ExecuteScalar().ToString();
@@ -686,7 +686,7 @@ namespace NephroNet.Accounts.Admin
                         }
                         else
                             dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
-                    }
+                    //}
                 }
             }
             connect.Close();
@@ -715,11 +715,11 @@ namespace NephroNet.Accounts.Admin
             {
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                    cmd.CommandText = "select count(*) from topics where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                     int countTopics = Convert.ToInt32(cmd.ExecuteScalar());
                     for (int i = 1; i <= countTopics; i++)
                     {
-                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [topics] where topic_title like '%" + word + "%' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1) as t where rowNum = '" + i + "'";
                         string temp_Id = cmd.ExecuteScalar().ToString();
                         topics.Add(temp_Id);
                     }
@@ -795,12 +795,12 @@ namespace NephroNet.Accounts.Admin
             for (int i = 0; i < totalUsers; i++)
             {
                 string temp_userId = users.ElementAt(i);
-                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1 ";
                 int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalTopicsForTempUser; j++)
                 {
                     //Get the topic ID:
-                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1) as t where rowNum = '" + j + "'";
                     id = cmd.ExecuteScalar().ToString();
                     //Get type:
                     cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
@@ -854,11 +854,11 @@ namespace NephroNet.Accounts.Admin
             {
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0 ";
+                    cmd.CommandText = "select count(*) from entries where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0 ";
                     int countMessages = Convert.ToInt32(cmd.ExecuteScalar());
                     for (int i = 1; i <= countMessages; i++)
                     {
-                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 0 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
+                        cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Entries] where entry_text like '%" + word + "%' and entry_isDeleted = 1 and entry_isApproved = 1 and entry_isDenied = 0) as t where rowNum = '" + i + "'";
                         string temp_Id = cmd.ExecuteScalar().ToString();
                         messages.Add(temp_Id);
                     }
@@ -875,7 +875,7 @@ namespace NephroNet.Accounts.Admin
                     //Check if the topic of the selected message is deleted or not:
                     cmd.CommandText = "select topic_isDeleted from Topics where topicId = '" + id + "' ";
                     int isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (isDeleted == 0)//0: False, meaning that the topic is not deleted
+                    if (isDeleted == 1)//1: True, meaning that the topic is deleted
                     {
                         //Get type:
                         cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
@@ -948,13 +948,13 @@ namespace NephroNet.Accounts.Admin
             DateTime start_time = calFrom.SelectedDate, end_time = calTo.SelectedDate;
             if (!start_time.ToString().Equals("1/1/0001 12:00:00 AM") && !end_time.ToString().Equals("1/1/0001 12:00:00 AM"))
             {
-                cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 0 and topic_isDenied = 0 and topic_isApproved = 1 ";
+                cmd.CommandText = "select count(*) from topics where topic_time >= '" + start_time + "' and topic_time <= '" + end_time + "' and topic_isDeleted = 1 and topic_isDenied = 0 and topic_isApproved = 1 ";
                 count = Convert.ToInt32(cmd.ExecuteScalar());
             }
             for (int i = 1; i <= count; i++)
             {
                 //Get the topic ID:
-                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_time >= '" + calFrom.SelectedDate + "' and topic_time <= '" + calTo.SelectedDate + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + i + "'";
+                cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_time >= '" + calFrom.SelectedDate + "' and topic_time <= '" + calTo.SelectedDate + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1) as t where rowNum = '" + i + "'";
                 id = cmd.ExecuteScalar().ToString();
                 //Get type:
                 cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
@@ -1026,12 +1026,12 @@ namespace NephroNet.Accounts.Admin
             {
                 cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PhysicianCompleteProfileId ASC), * FROM [PhysicianCompleteProfiles] where physicianCompleteProfile_physicianId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
                 string temp_userId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1";
                 int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalTopicsForTempUser; j++)
                 {
                     //Get the topic ID:
-                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1) as t where rowNum = '" + j + "'";
                     id = cmd.ExecuteScalar().ToString();
                     //Get type:
                     cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";
@@ -1104,12 +1104,12 @@ namespace NephroNet.Accounts.Admin
             {
                 cmd.CommandText = "select [userId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY PatientCompleteProfileId ASC), * FROM [PatientCompleteProfiles] where patientCompleteProfile_patientId like '%" + searchString + "%' ) as t where rowNum = '" + i + "'";
                 string temp_userId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0";
+                cmd.CommandText = "select count(*) from topics where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1";
                 int totalTopicsForTempUser = Convert.ToInt32(cmd.ExecuteScalar());
                 for (int j = 1; j <= totalTopicsForTempUser; j++)
                 {
                     //Get the topic ID:
-                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 0) as t where rowNum = '" + j + "'";
+                    cmd.CommandText = "select [topicId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY topicId ASC), * FROM [Topics] where topic_createdBy = '" + temp_userId + "' and topic_isApproved = 1 and topic_isDenied = 0 and topic_isDeleted = 1) as t where rowNum = '" + j + "'";
                     id = cmd.ExecuteScalar().ToString();
                     //Get type:
                     cmd.CommandText = "select [topic_time] from Topics where topicId = '" + id + "' ";

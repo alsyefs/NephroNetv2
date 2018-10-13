@@ -219,6 +219,16 @@ namespace NephroNet.Accounts.Physician
             SqlCommand cmd = connect.CreateCommand();
             string id = "", title = "", creator = "";
             string searchString = txtSearch.Text.Replace("'", "''");
+            if (grdResults.Rows.Count > 0)
+            {
+                //Hide the header called "User ID":
+                grdResults.HeaderRow.Cells[5].Visible = false;
+                //Hide IDs column and content which are located in column index 5:
+                for (int i = 0; i < grdResults.Rows.Count; i++)
+                {
+                    grdResults.Rows[i].Cells[5].Visible = false;
+                }
+            }
             for (int row = 0; row < grdResults.Rows.Count; row++)
             {
                 //Set the creator's link
@@ -231,8 +241,7 @@ namespace NephroNet.Accounts.Physician
                 grdResults.Rows[row].Cells[4].Controls.Add(creatorLink);
                 //Set the title's link
                 title = grdResults.Rows[row].Cells[0].Text;
-                cmd.CommandText = "select topicId from topics where topic_title like '" + title + "' ";
-                id = cmd.ExecuteScalar().ToString();
+                id = grdResults.Rows[row].Cells[5].Text;
                 HyperLink topicLink = new HyperLink();
                 topicLink.Text = title + " ";
                 topicLink.NavigateUrl = "ViewTopic.aspx?id=" + id;
@@ -387,6 +396,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
             dt.Columns.Add("Creator", typeof(string));
+            dt.Columns.Add("Topic ID", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             string[] words = searchString.Split(' ');
@@ -440,7 +450,7 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     else if (int_roleId == 3)//3 = Patient
@@ -449,13 +459,13 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     //Else will be the admin. If admin, just don't show anything about the consultation topics.
                 }
                 else
-                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
             }
             connect.Close();
             grdResults.DataSource = dt;
@@ -471,6 +481,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
             dt.Columns.Add("Creator", typeof(string));
+            dt.Columns.Add("Topic ID", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             string[] words = searchString.Split(' ');
@@ -530,7 +541,7 @@ namespace NephroNet.Accounts.Physician
                             int exists = Convert.ToInt32(cmd.ExecuteScalar());
                             if (exists > 0)
                             {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                             }
                         }
                         else if (int_roleId == 3)//3 = Patient
@@ -539,13 +550,13 @@ namespace NephroNet.Accounts.Physician
                             int exists = Convert.ToInt32(cmd.ExecuteScalar());
                             if (exists > 0)
                             {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                             }
                         }
                         //Else will be the admin. If admin, just don't show anything about the consultation topics.
                     }
                     else
-                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                 }
             }
             connect.Close();
@@ -562,6 +573,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
             dt.Columns.Add("Creator", typeof(string));
+            dt.Columns.Add("Topic ID", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             string[] words = searchString.Split(' ');
@@ -623,7 +635,7 @@ namespace NephroNet.Accounts.Physician
                                 int exists = Convert.ToInt32(cmd.ExecuteScalar());
                                 if (exists > 0)
                                 {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                                 }
                             }
                             else if (int_roleId == 3)//3 = Patient
@@ -632,13 +644,13 @@ namespace NephroNet.Accounts.Physician
                                 int exists = Convert.ToInt32(cmd.ExecuteScalar());
                                 if (exists > 0)
                                 {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                                 }
                             }
                             //Else will be the admin. If admin, just don't show anything about the consultation topics.
                         }
                         else
-                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                     }
                 }
             }
@@ -656,6 +668,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
             dt.Columns.Add("Creator", typeof(string));
+            dt.Columns.Add("Topic ID", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             string[] words = searchString.Split(' ');
@@ -710,7 +723,7 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     else if (int_roleId == 3)//3 = Patient
@@ -719,13 +732,13 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     //Else will be the admin. If admin, just don't show anything about the consultation topics.
                 }
                 else
-                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator);
+                    dt.Rows.Add(title, "Title", Layouts.getTimeFormat(time), type, creator, id);
             }
             //Search by creator
             SortedSet<string> users = new SortedSet<string>();
@@ -782,7 +795,7 @@ namespace NephroNet.Accounts.Physician
                             int exists = Convert.ToInt32(cmd.ExecuteScalar());
                             if (exists > 0)
                             {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                             }
                         }
                         else if (int_roleId == 3)//3 = Patient
@@ -791,13 +804,13 @@ namespace NephroNet.Accounts.Physician
                             int exists = Convert.ToInt32(cmd.ExecuteScalar());
                             if (exists > 0)
                             {
-                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                                dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                             }
                         }
                         //Else will be the admin. If admin, just don't show anything about the consultation topics.
                     }
                     else
-                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator);
+                        dt.Rows.Add(title, "Creator Name", Layouts.getTimeFormat(time), type, creator, id);
                 }
             }
             //Search by message text
@@ -857,7 +870,7 @@ namespace NephroNet.Accounts.Physician
                                 int exists = Convert.ToInt32(cmd.ExecuteScalar());
                                 if (exists > 0)
                                 {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                                 }
                             }
                             else if (int_roleId == 3)//3 = Patient
@@ -866,13 +879,13 @@ namespace NephroNet.Accounts.Physician
                                 int exists = Convert.ToInt32(cmd.ExecuteScalar());
                                 if (exists > 0)
                                 {
-                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                                    dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                                 }
                             }
                             //Else will be the admin. If admin, just don't show anything about the consultation topics.
                         }
                         else
-                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Message Text", Layouts.getTimeFormat(time), type, creator, id);
                     }
                 }
             }
@@ -891,6 +904,7 @@ namespace NephroNet.Accounts.Physician
             dt.Columns.Add("Time", typeof(string));
             dt.Columns.Add("Type", typeof(string));
             dt.Columns.Add("Creator", typeof(string));
+            dt.Columns.Add("Topic ID", typeof(string));
             string id = "", title = "", type = "", creator = "", time = "";
             string searchString = txtSearch.Text.Replace("'", "''");
             int count = 0;
@@ -935,7 +949,7 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     else if (int_roleId == 3)//3 = Patient
@@ -944,13 +958,13 @@ namespace NephroNet.Accounts.Physician
                         int exists = Convert.ToInt32(cmd.ExecuteScalar());
                         if (exists > 0)
                         {
-                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
+                            dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator, id);
                         }
                     }
                     //Else will be the admin. If admin, just don't show anything about the consultation topics.
                 }
                 else
-                    dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator);
+                    dt.Rows.Add(title, "Time Period", Layouts.getTimeFormat(time), type, creator, id);
             }
             connect.Close();
             grdResults.DataSource = dt;

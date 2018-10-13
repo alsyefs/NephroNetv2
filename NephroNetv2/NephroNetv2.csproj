@@ -154,9 +154,11 @@
     <Content Include="Accounts\Admin\ReviewTopic.aspx" />
     <Content Include="Accounts\Admin\ReviewUser.aspx" />
     <Content Include="Accounts\Admin\Search.aspx" />
+    <Content Include="Accounts\Admin\SearchArchive.aspx" />
     <Content Include="Accounts\Admin\TerminateAccount.aspx" />
     <Content Include="Accounts\Admin\TerminateTopic.aspx" />
     <Content Include="Accounts\Admin\UnlockAccount.aspx" />
+    <Content Include="Accounts\Admin\ViewArchivedTopic.aspx" />
     <Content Include="Accounts\Admin\ViewTopic.aspx" />
     <Content Include="Accounts\Patient\About.aspx" />
     <Content Include="Accounts\Patient\Account.aspx" />
@@ -434,6 +436,13 @@
     <Compile Include="Accounts\Admin\Search.aspx.designer.cs">
       <DependentUpon>Search.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Accounts\Admin\SearchArchive.aspx.cs">
+      <DependentUpon>SearchArchive.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\Admin\SearchArchive.aspx.designer.cs">
+      <DependentUpon>SearchArchive.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Accounts\Admin\TerminateAccount.aspx.cs">
       <DependentUpon>TerminateAccount.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -454,6 +463,13 @@
     </Compile>
     <Compile Include="Accounts\Admin\UnlockAccount.aspx.designer.cs">
       <DependentUpon>UnlockAccount.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\Admin\ViewArchivedTopic.aspx.cs">
+      <DependentUpon>ViewArchivedTopic.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\Admin\ViewArchivedTopic.aspx.designer.cs">
+      <DependentUpon>ViewArchivedTopic.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\Admin\ViewTopic.aspx.cs">
       <DependentUpon>ViewTopic.aspx</DependentUpon>

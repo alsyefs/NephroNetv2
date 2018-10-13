@@ -1,9 +1,10 @@
-﻿<%@ Page Title="View Topic" Language="C#" MasterPageFile="~/Admin.Master" AutoEventWireup="true" CodeBehind="ViewTopic.aspx.cs" Inherits="NephroNet.Accounts.Admin.ViewTopic" %>
+﻿<%@ Page Title="From Archive" Language="C#" MasterPageFile="~/Admin.Master" AutoEventWireup="true" CodeBehind="ViewArchivedTopic.aspx.cs" Inherits="NephroNet.Accounts.Admin.ViewArchivedTopic" %>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
     <%--Body start--%>
     <div class="container">
         <br />
-        <%--<h2><%: Title %></h2>--%>
+        <h2><%: Title %></h2>
         <div class="panel panel-default">
             <div class="panel-body">
                 <%--Content start--%>
@@ -13,8 +14,8 @@
                         return true;
                     }
                 </script>
-                <div id="modal" class="modal" style="background-color:rgba(64,64,64,0.5);width:100%;height:100%;z-index:1000;display:none"></div>
-                <div id="wait" class="modal" style="width:200px;height:20px;margin:100px auto 0 auto;display:none;background-color:#fff;z-index:1001;text-align:center;">PLEASE WAIT...</div>
+                <div id="modal" class="modal" style="background-color: rgba(64,64,64,0.5); width: 100%; height: 100%; z-index: 1000; display: none"></div>
+                <div id="wait" class="modal" style="width: 200px; height: 20px; margin: 100px auto 0 auto; display: none; background-color: #fff; z-index: 1001; text-align: center;">PLEASE WAIT...</div>
                 <div runat="server" id="ViewTopicDiv">
                     <asp:Label ID="lblHeader" runat="server" Text="Header" Font-Bold="True"></asp:Label>
                     <br />
@@ -39,12 +40,12 @@
                         <asp:Label ID="lblImageError" runat="server" Text="Image" Visible="false" ForeColor="red"></asp:Label>
                     <%--Submit--%><br />
                     <br />
-                    <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();"/>
+                    <asp:Button ID="btnSubmit" runat="server" Text="Submit" BackColor="Green" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnSubmit_Click" OnClientClick="pleaseWait();" />
                     &nbsp;
                         <%--Cancel button--%>    
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();"/>
+                        <asp:Button ID="btnCancel" runat="server" Text="Go back" BackColor="red" Font-Bold="True" Font-Size="Medium" Height="34px" Width="140px" OnClick="btnCancel_Click" OnClientClick="pleaseWait();" />
                     <%--Error message--%>
                     <br />
                     <br />
@@ -68,7 +69,7 @@
                         var param = JSON.stringify(obj);  // stringify the parameter
                         $.ajax({
                             method: "POST",
-                            url: '<%= ResolveUrl("ViewTopic.aspx/terminateTopic_Click") %>',
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/terminateTopic_Click") %>',
                             data: param,
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
@@ -76,7 +77,6 @@
                             cache: false,
                             success: function (msg) {
                                 window.location.href = window.location.href;
-                                //$('#ViewTopicDiv').load(document.href + '#ViewTopicDiv');
                                 console.log('Successfully terminated the topic!');
                             },
                             error: function (xhr, status, error) {
@@ -104,7 +104,7 @@
                         var param = JSON.stringify(obj);  // stringify the parameter
                         $.ajax({
                             method: "POST",
-                            url: '<%= ResolveUrl("ViewTopic.aspx/removeTopic_Click") %>',
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/removeTopic_Click") %>',
                             data: param,
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
@@ -112,8 +112,39 @@
                             cache: false,
                             success: function (msg) {
                                 window.location.href = window.location.href;
-                                //$('#ViewTopicDiv').load(document.href + '#ViewTopicDiv');
-                                //console.log('Successfully updated the page!');
+                            },
+                            error: function (xhr, status, error) {
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    }
+
+                </script>
+                <script type="text/javascript">
+                    function retrieveTopic(topicId, creatorId) {
+                        pleaseWait();
+                        if (confirm('Are sure you want to retrieve the selected topic?'))
+                            retrieveTopicConfirmed(topicId, creatorId);
+                    }
+                    function retrieveTopicConfirmed(topicId, creatorId) {
+                        console.log('You just confirmed!');
+                        var topicID = parseInt(topicId);
+                        var creatorID = parseInt(creatorId);
+                        var obj = {
+                            topicId: topicID,
+                            entry_creatorId: creatorID
+                        };
+                        var param = JSON.stringify(obj);  // stringify the parameter
+                        $.ajax({
+                            method: "POST",
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/retrieveTopic_Click") %>',
+                            data: param,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: true,
+                            cache: false,
+                            success: function (msg) {
+                                window.location.href = window.location.href;
                             },
                             error: function (xhr, status, error) {
                                 console.log(xhr.responseText);
@@ -131,7 +162,7 @@
                                 complainAboutMessage(messageId, userId, "There is no specific reason");
                         }
                         else {
-                                complainAboutMessage(messageId, userId, message_text);
+                            complainAboutMessage(messageId, userId, message_text);
                         }
                     }
                     function complainAboutMessage(messageId, userId, message_text) {
@@ -146,7 +177,7 @@
                         var param = JSON.stringify(obj);  // stringify the parameter
                         $.ajax({
                             method: "POST",
-                            url: '<%= ResolveUrl("ViewTopic.aspx/reportMessage_Click") %>',
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/reportMessage_Click") %>',
                             data: param,
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
@@ -178,48 +209,79 @@
                         var param = JSON.stringify(obj);  // stringify the parameter
                         $.ajax({
                             method: "POST",
-                            url: '<%= ResolveUrl("ViewTopic.aspx/removeMessage_Click") %>',
-                                        data: param,
-                                        contentType: "application/json; charset=utf-8",
-                                        dataType: "json",
-                                        async: true,
-                                        cache: false,
-                                        success: function (msg) {
-                                            console.log('Successfully deleted message ID: ' + messageId + '!');
-                                            window.location.href = window.location.href;
-                                            //$('#ViewTopicDiv').load(document.href + '#ViewTopicDiv');
-                                            //console.log('Successfully updated the page!');
-                                        },
-                                        error: function (xhr, status, error) {
-                                            console.log('The call failed! for message ID: ' + messageId);
-                                            console.log(xhr.responseText);
-                                        }
-                                    });
-                                }
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/removeMessage_Click") %>',
+                            data: param,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: true,
+                            cache: false,
+                            success: function (msg) {
+                                console.log('Successfully deleted message ID: ' + messageId + '!');
+                                window.location.href = window.location.href;
+                            },
+                            error: function (xhr, status, error) {
+                                console.log('The call failed! for message ID: ' + messageId);
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    }
+
+                    function retrieveMessage(messageId, messageNumberInPage, creatorId) {
+                        pleaseWait();
+                        if (confirm('Are sure you want to retrieve the selected message entry# (' + messageNumberInPage + ')?'))
+                            retrieveMessageConfirmed(messageId, creatorId);
+                    }
+                    function retrieveMessageConfirmed(messageId, creatorId) {
+                        console.log('You just confirmed!');
+                        var messageID = parseInt(messageId);
+                        var creatorID = parseInt(creatorId);
+                        var obj = {
+                            entryId: messageID,
+                            entry_creatorId: creatorID
+                        };
+                        var param = JSON.stringify(obj);  // stringify the parameter
+                        $.ajax({
+                            method: "POST",
+                            url: '<%= ResolveUrl("ViewArchivedTopic.aspx/retrieveMessage_Click") %>',
+                            data: param,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: true,
+                            cache: false,
+                            success: function (msg) {
+                                console.log('Successfully retrieved message ID: ' + messageId + '!');
+                                window.location.href = window.location.href;
+                            },
+                            error: function (xhr, status, error) {
+                                console.log('The call failed! for message ID: ' + messageId);
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    }
 
                 </script>
                 <%--Popup message--%>
                 <script type="text/javascript">
-                                function OpenPopup(site) { popup(site); }
-                                // copied from http://www.dotnetfunda.com/codes/code419-code-to-open-popup-window-in-center-position-.aspx
-                                function popup(url) {
-                                    var width = 500;
-                                    var height = 300;
-                                    var left = (screen.width - width) / 2;
-                                    var top = (screen.height - height) / 2;
-                                    var params = 'width=' + width + ', height=' + height;
-                                    params += ', top=' + top + ', left=' + left;
-                                    params += ', directories=no';
-                                    params += ', location=no';
-                                    params += ', menubar=no';
-                                    params += ', resizable=no';
-                                    params += ', scrollbars=no';
-                                    params += ', status=no';
-                                    params += ', toolbar=no';
-                                    newwin = window.open(url, 'windowname5', params);
-                                    if (window.focus) { newwin.focus() }
-                                    return false;
-                                }
+                    function OpenPopup(site) { popup(site); }
+                    // copied from http://www.dotnetfunda.com/codes/code419-code-to-open-popup-window-in-center-position-.aspx
+                    function popup(url) {
+                        var width = 500;
+                        var height = 300;
+                        var left = (screen.width - width) / 2;
+                        var top = (screen.height - height) / 2;
+                        var params = 'width=' + width + ', height=' + height;
+                        params += ', top=' + top + ', left=' + left;
+                        params += ', directories=no';
+                        params += ', location=no';
+                        params += ', menubar=no';
+                        params += ', resizable=no';
+                        params += ', scrollbars=no';
+                        params += ', status=no';
+                        params += ', toolbar=no';
+                        newwin = window.open(url, 'windowname5', params);
+                        if (window.focus) { newwin.focus() }
+                        return false;
+                    }
                 </script>
                 <script type="text/javascript">
                                 function onInputChange(e) {
