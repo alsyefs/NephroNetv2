@@ -40,6 +40,8 @@
                         console.log('started terminateAccount');
                         if (confirm('Are you sure you want to terminate the selected account?'))
                             terminate(userId);
+                        else
+                            $(".modal").hide();
                     }
                     function terminate(userId) {
                         console.log('terminating...');
@@ -71,6 +73,9 @@
                         pleaseWait();
                         if (confirm('Are you sure you want to unlock the selected account?'))
                             unlock(userId);
+                        else
+                            $(".modal").hide();
+
                     }
                     function unlock(userId) {
                         console.log('unlocking...');
@@ -88,15 +93,19 @@
                             dataType: "json",
                             async: true,
                             cache: false,
-                            success: function (msg) {
+                            success: function (response) {
+                                if (response.d != null && response.d.length > 0 ) {
+                                    console.log('The response is: ' + response.d + " response.d.length:" + response.d.length);
+                                    alert(response.d);
+                                }
+                                console.log('Successfully attempted to unlock the account!');
                                 window.location.href = window.location.href;
-                                console.log('Successfully unlocked the account!');
                             },
                             error: function (xhr, status, error) {
                                 console.log(xhr.responseText);
                             }
                         });
-                        console.log('unlocking...DONE!');
+                        console.log('unlocking process is done.');
                     }
                 </script>
                 <script type="text/javascript">

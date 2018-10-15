@@ -250,6 +250,55 @@ namespace NephroNet.Accounts.Admin
             connect.Close();
             return thereIs;
         }
+        protected bool checkIfIdUsed()
+        {
+            bool used = false;
+            SqlCommand cmd = connect.CreateCommand();
+            connect.Open();
+            int int_roleId = Convert.ToInt32(g_roleId);
+            if (int_roleId == 2)//2: Physician
+            {
+                //Check if there is already a physician who used the same Physician ID:
+                cmd.CommandText = "select count(*) from PhysicianShortProfiles where physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "' ";
+                int physicianIdHasBeenUsed = Convert.ToInt32(cmd.ExecuteScalar());
+                if (physicianIdHasBeenUsed > 0)
+                {
+                    //Get the user ID:
+                    cmd.CommandText = "select userId from PhysicianShortProfiles where physicianShortProfile_physicianId like '" + g_patientOrPhysicianId + "'";
+                    string physician_userId = cmd.ExecuteScalar().ToString();
+                    //Get the login ID:
+                    cmd.CommandText = "select loginId from Users where userId = '" + physician_userId + "'";
+                    string physician_loginId = cmd.ExecuteScalar().ToString();
+                    //Check if the account for that patient ID is active:
+                    cmd.CommandText = "select login_isActive from Logins where loginId = '" + physician_loginId + "'";
+                    int isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                    if (isActive == 1)
+                        used = true;
+                }
+            }
+            else if (int_roleId == 3)//3: Patient
+            {
+                //Check if there is already a patient who used the same Patient ID:
+                cmd.CommandText = "select count(*) from PatientShortProfiles where patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
+                int patientIdHasBeenUsed = Convert.ToInt32(cmd.ExecuteScalar());
+                if (patientIdHasBeenUsed > 0)
+                {
+                    //Get the user ID:
+                    cmd.CommandText = "select userId from PatientShortProfiles where patientShortProfile_patientId like '" + g_patientOrPhysicianId + "'";
+                    string patient_userId = cmd.ExecuteScalar().ToString();
+                    //Get the login ID:
+                    cmd.CommandText = "select loginId from Users where userId = '" + patient_userId + "'";
+                    string patient_loginId = cmd.ExecuteScalar().ToString();
+                    //Check if the account for that patient ID is active:
+                    cmd.CommandText = "select login_isActive from Logins where loginId = '" + patient_loginId + "'";
+                    int isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                    if (isActive == 1)
+                        used = true;
+                }
+            }
+            connect.Close();
+            return used;
+        }
         protected void btnApprove_Click(object sender, EventArgs e)
         {
             //Hide the success message:
@@ -267,6 +316,15 @@ namespace NephroNet.Accounts.Admin
                         lblMessage.Text = "There is no physician in a hospital with the entered Physician ID";
                     else if (int_roleId == 3)//3: Patient
                         lblMessage.Text = "There is no patient in a hospital with the entered Patient ID";
+                }
+                else if (checkIfIdUsed())
+                {
+                    lblMessage.Visible = true;
+                    lblMessage.ForeColor = System.Drawing.Color.Red;
+                    if (int_roleId == 2)//2: Physician
+                        lblMessage.Text = "There is already an active account for a physician in the system with the entered Physician ID";
+                    else if (int_roleId == 3)//3: Patient
+                        lblMessage.Text = "There is already an active account for a patient in the system with the entered Patient ID";
                 }
                 else
                 {
@@ -352,12 +410,19 @@ namespace NephroNet.Accounts.Admin
                 string patientEmail = cmd.ExecuteScalar().ToString();
                 cmd.CommandText = "select db2_patientShortProfile_phone from DB2_PatientShortProfiles where db2_patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
                 string patientPhone = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_patientShortProfile_gender from DB2_PatientShortProfiles where db2_patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
+                string patientGender = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select db2_patientShortProfile_dateOfBirth from DB2_PatientShortProfiles where db2_patientShortProfile_patientId like '" + g_patientOrPhysicianId + "' ";
+                string dob = cmd.ExecuteScalar().ToString();
                 patientEmail = patientEmail.Replace("'", "''");
                 patientPhone = patientPhone.Replace("'", "''");
+                patientGender = patientGender.Replace("'", "''");
+                dob = dob.Replace("'", "''");
                 //Insert into the short profile:
                 cmd.CommandText = "insert into PatientShortProfiles (patientShortProfile_email, patientShortProfile_phone, userId," +
-                    "patientShortProfile_patientId) values" +
-                    "('" + patientEmail + "', '" + patientPhone + "', '" + temp_userId + "', '" + g_patientOrPhysicianId + "') ";
+                    "patientShortProfile_patientId, patientShortProfile_gender, patientShortProfile_dateOfBirth) values" +
+                    "('" + patientEmail + "', '" + patientPhone + "', '" + temp_userId + "', '" + g_patientOrPhysicianId + "', " +
+                    " '"+patientGender+"', '"+dob+"') ";
                 cmd.ExecuteScalar();
             }
             connect.Close();

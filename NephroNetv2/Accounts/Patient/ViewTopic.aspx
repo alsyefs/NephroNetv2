@@ -78,6 +78,11 @@
                         pleaseWait();
                         if (confirm('Are sure you want to terminate the selected topic?'))
                             terminateTopicConfirmed(topicId, creatorId);
+                        else {
+                                console.log("before hiding the modal");
+                        $(".modal").hide();
+                        console.log("after hiding the modal");
+                            }
                     }
                     function terminateTopicConfirmed(topicId, creatorId) {
                         console.log('You just confirmed the termination!');
@@ -110,14 +115,26 @@
                 </script>
                 <script type="text/javascript">
                     function complain(messageId, messageNumberInPage, userId) {
-                        pleaseWait();
-                        console.log('started complaining');
+                         pleaseWait();
                         var message_text = prompt('Please enter your reason for reporting the selected message entry# (' + messageNumberInPage + '):');
-                        if (message_text == null || message_text == "") {
+                        if (message_text == null) {
+                            console.log("before hiding the modal");
+                        $(".modal").hide();
+                        console.log("after hiding the modal");
+                        }
+                        else if (message_text == "") {
+                            console.log("no message was entered");
                             if (confirm("You have not typed a reason. Do you still wish to submit a report without a reason?"))
                                 complainAboutMessage(messageId, userId, "There is no specific reason");
-                        }else {
-                            complainAboutMessage(messageId, userId, message_text);
+                            else {
+                                console.log("before hiding the modal");
+                        $(".modal").hide();
+                        console.log("after hiding the modal");
+                            }
+                        }
+                        else {
+                            console.log("the message entered was: " + message_text);
+                                complainAboutMessage(messageId, userId, message_text);
                         }
                     }
                     </script>
@@ -157,6 +174,11 @@
                         pleaseWait();
                         if (confirm('Are sure you want to remove the selected topic?'))
                             removeTopicConfirmed(topicId, creatorId);
+                        else {
+                                console.log("before hiding the modal");
+                        $(".modal").hide();
+                        console.log("after hiding the modal");
+                            }
                     }
                     function removeTopicConfirmed(topicId, creatorId) {
                         console.log('You just confirmed the deletion!');
@@ -199,6 +221,11 @@
                         pleaseWait();
                         if (confirm('Are sure you want to remove the selected message entry# (' + messageNumberInPage + ')?'))
                             removeMessageConfirmed(messageId, creatorId);
+                        else {
+                                console.log("before hiding the modal");
+                        $(".modal").hide();
+                        console.log("after hiding the modal");
+                            }
                     }
                     function removeMessageConfirmed(messageId, creatorId) {
                         console.log('You just confirmed!');

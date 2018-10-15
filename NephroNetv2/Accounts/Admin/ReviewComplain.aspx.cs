@@ -21,14 +21,22 @@ namespace NephroNet.Accounts.Admin
         {
             initialPageAccess();
             complainId = Request.QueryString["id"];
-            showTopicInformation();
+            try
+            {
+                showTopicInformation();
+            }
+            catch (Exception)
+            {
+                addSession();
+                Response.Redirect("ApproveComplains");
+            }
         }
         protected void showTopicInformation()
         {
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             //Check if the ID exists in the database:
-            cmd.CommandText = "select count(*) from Complains where complainId = '" + complainId + "' ";
+            cmd.CommandText = "select count(*) from Complains where complainId = '" + complainId.Replace("'", "''") + "' ";
             int countComplain = Convert.ToInt32(cmd.ExecuteScalar());
             if (countComplain > 0)//if ID exists, countComplain = 1
             {
@@ -141,7 +149,6 @@ namespace NephroNet.Accounts.Admin
             //Hide "Approve" and "Deny" buttons:
             hideApproveDeny();
         }
-
         protected void btnApprove_Click(object sender, EventArgs e)
         {
             //Hide the success message:
@@ -151,7 +158,8 @@ namespace NephroNet.Accounts.Admin
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "update Entries set entry_isDeleted = 1 where entryId = '" + g_complain_entryId + "' ";
             cmd.ExecuteScalar();
-            cmd.CommandText = "delete from Complains where complainId = '"+complainId+"' ";
+            //Delete the complaints and all related complaints:
+            cmd.CommandText = "delete from Complains where entryId = '" + g_complain_entryId + "' ";
             cmd.ExecuteScalar();
             connect.Close();
             //Create an email message to be sent:
@@ -178,7 +186,6 @@ namespace NephroNet.Accounts.Admin
             addSession();
             Response.Redirect("ApproveComplains");
         }
-
         protected void clearSession()
         {
 

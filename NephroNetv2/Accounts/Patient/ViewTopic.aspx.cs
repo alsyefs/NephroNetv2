@@ -848,10 +848,17 @@ namespace NephroNet.Accounts.Patient
                 SqlConnection connect = new SqlConnection(config.getConnectionString());
                 connect.Open();
                 SqlCommand cmd = connect.CreateCommand();
-                //insert the new complain into the database:
-                cmd.CommandText = "insert into Complains (entryId, complain_reason, complain_fromUser, complain_time) values " +
-                    "('" + entryId + "', '" + complain_text.Replace("'", "''") + "', '" + current_userId + "', '" + DateTime.Now + "')";
-                cmd.ExecuteScalar();
+                //Check if the same user has entered the same complaint message about the same message before:
+                cmd.CommandText = "select count(*) from Complains where complain_reason like '" + complain_text.Replace("'", "''") + "' " +
+                    "and complain_fromUser = '" + current_userId + "'  and entryId = '" + entryId + "' ";
+                int thereExistsComplaint = Convert.ToInt32(cmd.ExecuteScalar());
+                //If there is no previous complaints with the same reason, add the new complaint:
+                if (thereExistsComplaint == 0)
+                {//insert the new complain into the database:
+                    cmd.CommandText = "insert into Complains (entryId, complain_reason, complain_fromUser, complain_time) values " +
+                        "('" + entryId + "', '" + complain_text.Replace("'", "''") + "', '" + current_userId + "', '" + DateTime.Now + "')";
+                    cmd.ExecuteScalar();
+                }
                 connect.Close();
             }
         }

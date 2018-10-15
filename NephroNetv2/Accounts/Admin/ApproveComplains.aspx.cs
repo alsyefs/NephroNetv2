@@ -106,12 +106,29 @@ namespace NephroNet.Accounts.Admin
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             string creator = "";
+            if (grdComplains.Rows.Count > 0)
+            {
+                //Hide the header called "ID" and the creator ID:
+                grdComplains.HeaderRow.Cells[1].Visible = false;
+                grdComplains.HeaderRow.Cells[4].Visible = false;
+                //Hide IDs column and content which are located in column index 1 and creator ID at col 4:
+                for (int i = 0; i < grdComplains.Rows.Count; i++)
+                {
+                    grdComplains.Rows[i].Cells[1].Visible = false;
+                    grdComplains.Rows[i].Cells[4].Visible = false;
+                }
+                lblMessage.Visible = false;
+            }
+            else //This means nothing was added in the table.
+            {
+                lblMessage.Visible = true;
+            }
             for (int row = 0; row < grdComplains.Rows.Count; row++)
             {
                 //Set the creator's link
                 creator = grdComplains.Rows[row].Cells[3].Text;
-                cmd.CommandText = "select userId from Users where (user_firstname +' '+ user_lastname) like '" + creator + "' ";
-                string creatorId = cmd.ExecuteScalar().ToString();
+                //cmd.CommandText = "select userId from Users where (user_firstname +' '+ user_lastname) like '" + creator + "' ";
+                string creatorId = grdComplains.Rows[row].Cells[4].Text;
                 HyperLink creatorLink = new HyperLink();
                 creatorLink.Text = creator + " ";
                 creatorLink.NavigateUrl = "Profile.aspx?id=" + creatorId;
@@ -125,6 +142,7 @@ namespace NephroNet.Accounts.Admin
             dt.Columns.Add("ID", typeof(string));
             dt.Columns.Add("Complain time", typeof(string));
             dt.Columns.Add("From user", typeof(string));
+            dt.Columns.Add("Creator ID", typeof(string));
             string id = "", time = "", from_user = "";
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
@@ -141,22 +159,21 @@ namespace NephroNet.Accounts.Admin
                 //Get reporter's name:
                 cmd.CommandText = "select (user_firstname + ' ' + user_lastname) from users where userId = '" + reporter_userId + "' ";
                 from_user = cmd.ExecuteScalar().ToString();
-                dt.Rows.Add(id, Layouts.getTimeFormat(time), from_user);
+                //Get the entryId:
+                cmd.CommandText = "select entryId from Complains where complainId = '" + id + "' ";
+                string entryId = cmd.ExecuteScalar().ToString();
+                cmd.CommandText = "select entry_isDeleted from Entries where entryId = '"+entryId+"' ";
+                int entry_isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = "select userId from Entries where entryId = '" + entryId + "' ";
+                string creatorId = cmd.ExecuteScalar().ToString();
+                //If the complaint was not deleted, add it to the table:
+                if (entry_isDeleted == 0)
+                    dt.Rows.Add(id, Layouts.getTimeFormat(time), from_user, creatorId);
             }
             connect.Close();
             grdComplains.DataSource = dt;
             grdComplains.DataBind();
-            if (count > 0)
-            {
-                //Hide the header called "ID":
-                grdComplains.HeaderRow.Cells[1].Visible = false;
-                //Hide IDs column and content which are located in column index 1:
-                for (int i = 0; i < grdComplains.Rows.Count; i++)
-                {
-                    grdComplains.Rows[i].Cells[1].Visible = false;
-                }
-                rebindValues();
-            }
+            rebindValues();
         }
         protected int getTotalNewComplains()
         {

@@ -15,6 +15,32 @@ namespace NephroNet
         {
             //Delete the below after the first run:
             //createNewDummyDataInHospitalDB();
+            //createRandomGendersDobs();
+        }
+        protected DateTime RandomDay(Random r_dob)
+        {
+            DateTime start = new DateTime(1900, 1, 1);
+            int range = (DateTime.Today - start).Days;
+            return start.AddDays(r_dob.Next(range));
+        }
+        protected void createRandomGendersDobs()
+        {
+            Configuration config = new Configuration();
+            SqlConnection connect = new SqlConnection(config.getConnectionString());
+            SqlCommand cmd = connect.CreateCommand();
+            Random r_gender = new Random();
+            Random r_dob = new Random();
+            string[] genders = new string[] { "Male", "Female" };
+            connect.Open();
+            for (int i=0; i<10000; i++)
+            {
+                DateTime temp_date = RandomDay(r_dob);
+                int temp_gender = r_gender.Next(0, 2);
+                cmd.CommandText = "update DB2_PatientShortProfiles set db2_patientShortProfile_gender = '" + genders[temp_gender] + "', " +
+                    "db2_patientShortProfile_dateOfBirth = '" + temp_date + "' where db2_patientShortProfileId = '" + (i + 1) + "' ";
+                cmd.ExecuteScalar();
+            }
+            connect.Close();
         }
         protected void createNewDummyDataInHospitalDB()
         {
@@ -92,9 +118,14 @@ namespace NephroNet
             Random r_phone = new Random();
             long minPhone = 1000000000;
             long maxPhone = 9999999999;
+            Random r_gender = new Random();
+            Random r_dob = new Random();
+            string[] genders = new string[] { "Male", "Female" };
             connect.Open();
             for (int i = 0; i < 10000; i++)
             {
+                DateTime temp_date = RandomDay(r_dob);
+                int temp_gender = r_gender.Next(0, 2);
                 int hospital = r_hospital.Next(0, 10);
                 int physicianId = r_physicianId.Next(10000000, 99999999);
                 int patientId = r_physicianId.Next(10000000, 99999999);
@@ -116,8 +147,8 @@ namespace NephroNet
                 {
                     //Insert new Patient information:
                     cmd.CommandText = "insert into DB2_PatientShortProfiles (db2_patientShortProfile_email, db2_patientShortProfile_phone, " +
-                      "db2_patientShortProfile_patientId) values " +
-                      "('" + patientId + "@" + hospitalWebsites[hospital] + "', '" + phone + "', '" + patientId + "')";
+                      "db2_patientShortProfile_patientId, db2_patientShortProfile_gender, db2_patientShortProfile_dateOfBirth) values " +
+                      "('" + patientId + "@" + hospitalWebsites[hospital] + "', '" + phone + "', '" + patientId + "', '"+ genders[temp_gender] + "', '"+temp_date+"')";
                     cmd.ExecuteScalar();
                 }
             }

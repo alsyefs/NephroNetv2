@@ -338,8 +338,9 @@ namespace NephroNet.Accounts.Admin
         }
         [WebMethod]
         [ScriptMethod()]
-        public static void terminateOrUnlockAccount(string in_profileId, int terminateOrUnlock)
+        public static string terminateOrUnlockAccount(string in_profileId, int terminateOrUnlock)
         {
+            string errorMessage = ""; 
             requestedTerminateOrUnlockAccount = true;
             Configuration config = new Configuration();
             SqlConnection connect = new SqlConnection(config.getConnectionString());
@@ -373,25 +374,91 @@ namespace NephroNet.Accounts.Admin
                 }
                 else if (terminateOrUnlock == 2)//2 = Unlock
                 {
+                    bool thereExistsAnotherActiveAccount = false;
                     connect.Open();
-                    //update the DB and set isActive = true:
-                    cmd.CommandText = "update Logins set login_isActive = 1 where loginId = '" + account_loginId + "' ";
-                    cmd.ExecuteScalar();
-                    //Email the topic creator about the topic being deleted:
-                    cmd.CommandText = "select user_firstname from Users where userId = '" + in_profileId + "' ";
-                    string name = cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_lastname from Users where userId = '" + in_profileId + "' ";
-                    name = name + " " + cmd.ExecuteScalar().ToString();
-                    cmd.CommandText = "select user_email from Users where userId = '" + in_profileId + "' ";
-                    string emailTo = cmd.ExecuteScalar().ToString();
-                    connect.Close();
-                    string emailBody = "Hello " + name + ",\n\n" +
-                    "This email is to inform you that your account has been unlocked and can now be used in the system. You can now use your username and password to login. If you have any questions, plaese contact the support.\n\n" +
-                    "Best regards,\nNephroNet Support\nNephroNet2018@gmail.com";
-                    Email email = new Email();
-                    email.sendEmail(emailTo, emailBody);
+                    //Ckeck if the account belongs to a patient or physician:
+                    cmd.CommandText = "select count(*) from PatientShortProfiles where userId = '"+ in_profileId + "' ";
+                    int countPatients = Convert.ToInt32(cmd.ExecuteScalar());
+                    cmd.CommandText = "select count(*) from PhysicianShortProfiles where userId = '" + in_profileId + "' ";
+                    int countPhysicians = Convert.ToInt32(cmd.ExecuteScalar());
+                    //If Patient:
+                    if (countPatients > 0)
+                    {
+                        //get the patient ID:
+                        cmd.CommandText = "select patientShortProfile_patientId from PatientShortProfiles where userId = '" + in_profileId + "' ";
+                        string temp_patientId = cmd.ExecuteScalar().ToString();
+                        //Check if there is another patient with same Patient ID:
+                        cmd.CommandText = "select count(*) from PatientShortProfiles where patientShortProfile_patientId = '" + temp_patientId + "' and userId not like '"+in_profileId+"'  ";
+                        int countMatchingPatientIds = Convert.ToInt32(cmd.ExecuteScalar());
+                        //Check for all matching patient IDs if there is an active account:
+                        for(int i=1; i<= countMatchingPatientIds; i++)
+                        {
+                            cmd.CommandText = "select [userId] from ( SELECT rowNum = ROW_NUMBER() OVER(ORDER BY patientShortProfileId ASC), * FROM [PatientShortProfiles] where patientShortProfile_patientId = '" + temp_patientId + "' and userId not like '" + in_profileId + "') as t where rowNum = '" + i+"'";
+                            string temp_userId = cmd.ExecuteScalar().ToString();
+                            cmd.CommandText = "select loginId from Users where userId = '"+temp_userId+"' ";
+                            string temp_loginId = cmd.ExecuteScalar().ToString();
+                            cmd.CommandText = "select login_isActive from Logins where loginId = '"+temp_loginId+"' ";
+                            int isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (isActive == 1)
+                            {
+                                thereExistsAnotherActiveAccount = true;
+                                errorMessage = "There is another active patient account with the same Patient ID";
+                            }
+                        }
+                    }
+                    //If Physician:
+                    if (countPhysicians > 0)
+                    {
+                        //get the physician ID:
+                        cmd.CommandText = "select physicianShortProfile_physicianId from PhysicianShortProfiles where userId = '" + in_profileId + "' ";
+                        string temp_physicianId = cmd.ExecuteScalar().ToString();
+                        //Check if there is another physician with same Physician ID:
+                        cmd.CommandText = "select count(*) from PhysicianShortProfiles where physicianShortProfile_physicianId = '" + temp_physicianId + "' and userId not like '" + in_profileId + "'  ";
+                        int countMatchingPhysicianIds = Convert.ToInt32(cmd.ExecuteScalar());
+                        //Check for all matching patient IDs if there is an active account:
+                        for (int i = 1; i <= countMatchingPhysicianIds; i++)
+                        {
+                            cmd.CommandText = "select [userId] from ( SELECT rowNum = ROW_NUMBER() OVER(ORDER BY physicianShortProfileId ASC), * FROM [PhysicianShortProfiles] where physicianShortProfile_physicianId = '" + temp_physicianId + "' and userId not like '" + in_profileId + "') as t where rowNum = '" + i + "'";
+                            string temp_userId = cmd.ExecuteScalar().ToString();
+                            cmd.CommandText = "select loginId from Users where userId = '" + temp_userId + "' ";
+                            string temp_loginId = cmd.ExecuteScalar().ToString();
+                            cmd.CommandText = "select login_isActive from Logins where loginId = '" + temp_loginId + "' ";
+                            int isActive = Convert.ToInt32(cmd.ExecuteScalar());
+                            if (isActive == 1)
+                            {
+                                thereExistsAnotherActiveAccount = true;
+                                errorMessage = "There is another active physician account with the same Physician ID";
+                            }
+                        }
+                    }
+                    //If there is an active account, do not update
+                    if (thereExistsAnotherActiveAccount)
+                    {
+                        
+                    }
+                    //Else, update the record:
+                    if (!thereExistsAnotherActiveAccount)
+                    {
+                        //update the DB and set isActive = true:
+                        cmd.CommandText = "update Logins set login_isActive = 1 where loginId = '" + account_loginId + "' ";
+                        cmd.ExecuteScalar();
+                        //Email the topic creator about the topic being deleted:
+                        cmd.CommandText = "select user_firstname from Users where userId = '" + in_profileId + "' ";
+                        string name = cmd.ExecuteScalar().ToString();
+                        cmd.CommandText = "select user_lastname from Users where userId = '" + in_profileId + "' ";
+                        name = name + " " + cmd.ExecuteScalar().ToString();
+                        cmd.CommandText = "select user_email from Users where userId = '" + in_profileId + "' ";
+                        string emailTo = cmd.ExecuteScalar().ToString();
+                        connect.Close();
+                        string emailBody = "Hello " + name + ",\n\n" +
+                        "This email is to inform you that your account has been unlocked and can now be used in the system. You can now use your username and password to login. If you have any questions, plaese contact the support.\n\n" +
+                        "Best regards,\nNephroNet Support\nNephroNet2018@gmail.com";
+                        Email email = new Email();
+                        email.sendEmail(emailTo, emailBody);
+                    }
                 }
             }
+            return errorMessage;
         }
         protected static bool isAccountCorrect(string in_profileId, int terminateOrUnlock)
         {
