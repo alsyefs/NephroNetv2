@@ -31,7 +31,7 @@ namespace NephroNet.Accounts.Physician
         {
             if (!IsPostBack)
             {
-                if (!requestedRemoveTopic && !requestedRemoveMessage &&!requestedReportMessage)
+                if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
                 {
                     if (HttpContext.Current.Request.Url.AbsoluteUri != null) currentPage = HttpContext.Current.Request.Url.AbsoluteUri;
                     else currentPage = "Home.aspx";
@@ -224,7 +224,7 @@ namespace NephroNet.Accounts.Physician
         }
         protected void unauthorized()
         {
-            
+
         }
         protected string getHeader()
         {
@@ -262,23 +262,23 @@ namespace NephroNet.Accounts.Physician
                 //Get "Yes" or "No" for topic_hasImage:
                 cmd.CommandText = "select topic_hasImage from [Topics] where [topicId] = '" + topicId + "' ";
                 int topic_hasImage = Convert.ToInt32(cmd.ExecuteScalar());
-                
+
                 //Get topic_isDeleted ?:
                 cmd.CommandText = "select topic_isDeleted from [Topics] where [topicId] = '" + topicId + "' ";
                 int int_topic_isDeleted = Convert.ToInt32(cmd.ExecuteScalar());
-                
+
                 //Get topic_isApproved ?:
                 cmd.CommandText = "select topic_isApproved from [Topics] where [topicId] = '" + topicId + "' ";
                 int int_topic_isApproved = Convert.ToInt32(cmd.ExecuteScalar());
-                
+
                 //Get topic_isDenied ?:
                 cmd.CommandText = "select topic_isDenied from [Topics] where [topicId] = '" + topicId + "' ";
                 int int_topic_isDenied = Convert.ToInt32(cmd.ExecuteScalar());
-                
+
                 //Get topic_isTerminated ?:
                 cmd.CommandText = "select topic_isTerminated from [Topics] where [topicId] = '" + topicId + "' ";
                 int int_topic_isTerminated = Convert.ToInt32(cmd.ExecuteScalar());
-                
+
                 //Get tags:
                 string tagNames = "";
                 cmd.CommandText = "select count(*) from TagsForTopics where topicId = '" + topicId + "' ";
@@ -458,9 +458,9 @@ namespace NephroNet.Accounts.Physician
                         btnSubmit.Visible = false;
                     }
                 }
-                
 
-                
+
+
             }
             else
             {
@@ -496,29 +496,35 @@ namespace NephroNet.Accounts.Physician
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            //if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
-            //{
-                hideErrorLabels();
-                Boolean correct = checkInput();
-                if (correct)
-                {
-                    addNewEntry();
-                    clearInputs();
-                    sendEmail();
-                }
-            //}
-            if (requestedRemoveTopic) requestedRemoveTopic = false;
-            if (requestedRemoveMessage) requestedRemoveMessage = false;
-            requestedReportMessage = false;
-            clearInputs();
             connect.Open();
             SqlCommand cmd = connect.CreateCommand();
             cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
             string topic_type = cmd.ExecuteScalar().ToString();
-            if (topic_type.Equals("Consultation"))
-                Page.Response.Redirect(Page.Request.Url.ToString(), true);
             connect.Close();
-            
+            hideErrorLabels();
+            int int_roleId = Convert.ToInt32(roleId);
+            Boolean correct = checkInput();
+            if (correct)
+            {
+                addNewEntry();
+                clearInputs();
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
+                    sendEmail();
+            }
+            if (requestedRemoveTopic) requestedRemoveTopic = false;
+            if (requestedRemoveMessage) requestedRemoveMessage = false;
+            requestedReportMessage = false;
+            clearInputs();
+            if (correct)
+            {
+                //To go to the bottom of the page after submitting a new message:
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
+                {
+                    lblError.Text += "<script> window.scrollTo(0,document.body.scrollHeight);</script>";
+                }
+                else
+                    Page.Response.Redirect(Page.Request.Url.ToString() + "#bottomOfThePage", true);
+            }
         }
         protected void clearInputs()
         {
@@ -650,7 +656,7 @@ namespace NephroNet.Accounts.Physician
             //Get the current user's ID:
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
-            cmd.CommandText = "select topic_type from topics where topicId = '"+topicId+"' ";
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
             string topic_type = cmd.ExecuteScalar().ToString();
             int entry_isApproved;
             if (topic_type.Equals("Consultation"))
@@ -661,12 +667,12 @@ namespace NephroNet.Accounts.Physician
             else
                 entry_isApproved = 0;
             cmd.CommandText = "insert into Entries (topicId, userId, entry_time, entry_text, entry_isDeleted, entry_isApproved, entry_isDenied, entry_hasImage) values " +
-                    "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '"+entry_isApproved+"', '0', '" + hasImage + "')";
+                    "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '" + entry_isApproved + "', '0', '" + hasImage + "')";
             cmd.ExecuteScalar();
             cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [Entries] " +
                 "where topicId = '" + topicId + "' and userId = '" + userId + "'  " +
                 "and entry_isDeleted = '0' and entry_hasImage = '" + hasImage +
-                "' and entry_isApproved = '"+ entry_isApproved + "' and entry_isDenied = '0' " +
+                "' and entry_isApproved = '" + entry_isApproved + "' and entry_isDenied = '0' " +
                 " ) as t where rowNum = '1'";
             entryId = cmd.ExecuteScalar().ToString();
             connect.Close();
@@ -783,9 +789,9 @@ namespace NephroNet.Accounts.Physician
                     }
                 }
                 //Get the role ID of the current user:
-                cmd.CommandText = "select loginId from users where userId = '"+userId+"' ";
+                cmd.CommandText = "select loginId from users where userId = '" + userId + "' ";
                 string loginId = cmd.ExecuteScalar().ToString();
-                cmd.CommandText = "select roleId from Logins where loginId = '"+loginId+"' ";
+                cmd.CommandText = "select roleId from Logins where loginId = '" + loginId + "' ";
                 string roleId = cmd.ExecuteScalar().ToString();
                 //Get topic creator ID of current user viewing:
                 cmd.CommandText = "select topic_createdBy from Topics where topicId = '" + topicId + "' ";

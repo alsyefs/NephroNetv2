@@ -493,28 +493,35 @@ namespace NephroNet.Accounts.Patient
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            //if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
-            //{
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+            string topic_type = cmd.ExecuteScalar().ToString();
+            connect.Close();
             hideErrorLabels();
+            int int_roleId = Convert.ToInt32(roleId);
             Boolean correct = checkInput();
             if (correct)
             {
                 addNewEntry();
                 clearInputs();
-                sendEmail();
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
+                    sendEmail();
             }
-            //}
             if (requestedRemoveTopic) requestedRemoveTopic = false;
             if (requestedRemoveMessage) requestedRemoveMessage = false;
             requestedReportMessage = false;
             clearInputs();
-            connect.Open();
-            SqlCommand cmd = connect.CreateCommand();
-            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
-            string topic_type = cmd.ExecuteScalar().ToString();
-            if (topic_type.Equals("Consultation"))
-                Page.Response.Redirect(Page.Request.Url.ToString(), true);
-            connect.Close();
+            if (correct)
+            {
+                //To go to the bottom of the page after submitting a new message:
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
+                {
+                    lblError.Text += "<script> window.scrollTo(0,document.body.scrollHeight);</script>";
+                }
+                else
+                    Page.Response.Redirect(Page.Request.Url.ToString() + "#bottomOfThePage", true);
+            }
         }
         protected void clearInputs()
         {

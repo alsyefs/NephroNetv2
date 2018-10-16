@@ -71,7 +71,7 @@ namespace NephroNet.Accounts.Admin
                         previousPage = "Home.aspx";
                 }
             }
-            
+
         }
         protected string GetIPAddress()
         {
@@ -190,7 +190,7 @@ namespace NephroNet.Accounts.Admin
         }
         protected void unauthorized()
         {
-            
+
         }
         protected string getHeader()
         {
@@ -426,21 +426,35 @@ namespace NephroNet.Accounts.Admin
         }
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            //if (!requestedRemoveTopic && !requestedRemoveMessage && !requestedReportMessage)
-            //{
-                hideErrorLabels();
-                Boolean correct = checkInput();
-                if (correct)
-                {
-                    addNewEntry();
-                    clearInputs();
+            connect.Open();
+            SqlCommand cmd = connect.CreateCommand();
+            cmd.CommandText = "select topic_type from topics where topicId = '" + topicId + "' ";
+            string topic_type = cmd.ExecuteScalar().ToString();
+            connect.Close();
+            hideErrorLabels();
+            int int_roleId = Convert.ToInt32(roleId);
+            Boolean correct = checkInput();
+            if (correct)
+            {
+                addNewEntry();
+                clearInputs();
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
                     sendEmail();
-                }
-            //}
+            }
             if (requestedRemoveTopic) requestedRemoveTopic = false;
             if (requestedRemoveMessage) requestedRemoveMessage = false;
             requestedReportMessage = false;
             clearInputs();
+            if (correct)
+            {
+                //To go to the bottom of the page after submitting a new message:
+                if (!topic_type.Equals("Consultation") && int_roleId != 1)
+                {
+                    lblError.Text += "<script> window.scrollTo(0,document.body.scrollHeight);</script>";
+                }
+                else
+                    Page.Response.Redirect(Page.Request.Url.ToString() + "#bottomOfThePage", true);
+            }
         }
         protected void clearInputs()
         {
@@ -489,10 +503,14 @@ namespace NephroNet.Accounts.Admin
             //Store new topic as neither approved nor denied and return its ID:
             string entryId = storeEntry(hasImage);
             storeImagesInDB(entryId, hasImage, files);
-            lblError.Visible = true;
-            lblError.ForeColor = System.Drawing.Color.Green;
-            lblError.Text = "The message has been successfully submitted and an email notification has been sent to you. <br/>" +
-                "Your message will be reviewed and you will be notified by email once the review is complete.";
+            int int_roleId = Convert.ToInt32(roleId);
+            if (int_roleId != 1)
+            {
+                lblError.Visible = true;
+                lblError.ForeColor = System.Drawing.Color.Green;
+                lblError.Text = "The message has been successfully submitted and an email notification has been sent to you. <br/>" +
+                    "Your message will be reviewed and you will be notified by email once the review is complete.";
+            }
         }
         protected void storeImagesInDB(string entryId, int hasImage, ArrayList files)
         {
@@ -569,11 +587,15 @@ namespace NephroNet.Accounts.Admin
             string description = txtEntry.Text.Replace("'", "''");
             description = description.Replace("\n", "<br />");
             description = description.Replace("\r", "&nbsp;&nbsp;&nbsp;&nbsp;");
+            int entry_isApproved = 0;
+            int int_roleId = Convert.ToInt32(roleId);
+            //If the current user is admin, just store the message as approved:
+            if (int_roleId == 1) entry_isApproved = 1; 
             //Get the current user's ID:
             cmd.CommandText = "select userId from Users where loginId = '" + loginId + "' ";
             string userId = cmd.ExecuteScalar().ToString();
             cmd.CommandText = "insert into Entries (topicId, userId, entry_time, entry_text, entry_isDeleted, entry_isApproved, entry_isDenied, entry_hasImage) values " +
-                "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '0', '0', '" + hasImage + "')";
+                "('" + topicId + "', '" + userId + "', '" + entry_time + "', '" + description + "', ' 0 ', '"+ entry_isApproved + "', '0', '" + hasImage + "')";
             cmd.ExecuteScalar();
             cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [Entries] " +
                 "where topicId = '" + topicId + "' and userId = '" + userId + "' and entry_isDeleted = '0' and entry_hasImage = '" + hasImage +
@@ -632,7 +654,7 @@ namespace NephroNet.Accounts.Admin
             Configuration config = new Configuration();
             SqlConnection connect = new SqlConnection(config.getConnectionString());
             bool topicIdExists = isTopicCorrect(topicId, entry_creatorId);
-            
+
             if (topicIdExists)
             {
                 connect.Open();
@@ -747,8 +769,8 @@ namespace NephroNet.Accounts.Admin
                 connect.Open();
                 SqlCommand cmd = connect.CreateCommand();
                 //Check if the same user has entered the same complaint message about the same message before:
-                cmd.CommandText = "select count(*) from Complains where complain_reason like '"+ complain_text.Replace("'", "''") + "' " +
-                    "and complain_fromUser = '"+ current_userId + "'  and entryId = '"+ entryId + "' ";
+                cmd.CommandText = "select count(*) from Complains where complain_reason like '" + complain_text.Replace("'", "''") + "' " +
+                    "and complain_fromUser = '" + current_userId + "'  and entryId = '" + entryId + "' ";
                 int thereExistsComplaint = Convert.ToInt32(cmd.ExecuteScalar());
                 //If there is no previous complaints with the same reason, add the new complaint:
                 if (thereExistsComplaint == 0)

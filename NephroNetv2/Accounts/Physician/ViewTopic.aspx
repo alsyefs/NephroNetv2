@@ -66,6 +66,7 @@
                 <br />
                 <br />
                 <asp:Label ID="lblError" runat="server" ForeColor="Red" Text="Label" Visible="False"></asp:Label>
+                <a id="bottomOfThePage" name="bottomOfThePage" runat="server"></a>
                 <%--Content end--%>
                 <script type="text/javascript">
                     function terminateTopic(topicId, creatorId) {

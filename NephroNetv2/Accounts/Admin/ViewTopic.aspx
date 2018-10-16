@@ -48,7 +48,8 @@
                     <%--Error message--%>
                     <br />
                     <br />
-                    <asp:Label ID="lblError" runat="server" ForeColor="Red" Text="Label" Visible="False"></asp:Label>
+                    <asp:Label ID="lblError" runat="server" ForeColor="Red" Text="Label" Visible="False" ></asp:Label>
+                    <a id="bottomOfThePage" name="bottomOfThePage" runat="server"></a>
                 </div>
                 <%--Content end--%>
                 <script type="text/javascript">
