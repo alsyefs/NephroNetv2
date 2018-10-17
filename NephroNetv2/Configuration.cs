@@ -9,9 +9,9 @@ namespace NephroNet
     public class Configuration
     {
         //The below is Saleh's personal connection string:
-        //static string connectionString = "data source=R14\\SALEH;initial catalog=NephroNetDBv2;MultipleActiveResultSets=True;user id=sa; password=Saleh.Alsyefi1988 ";
+        static string connectionString = "data source=R14\\SALEH;initial catalog=NephroNetDBv2;MultipleActiveResultSets=True;user id=sa; password=Saleh.Alsyefi1988 ";
         //The server's connection string:
-        static string connectionString = "data source=Murcap02;initial catalog=NephroNetDBv2;MultipleActiveResultSets=True; user id=sa; password=Saleh.Alsyefi1988";
+        //static string connectionString = "data source=Murcap02;initial catalog=NephroNetDBv2;MultipleActiveResultSets=True; user id=sa; password=Saleh.Alsyefi1988";
         static string dbId = setDBID();
         static string dbPassword = setDBPassword();
         //The below is to be used if the connection string is needed to be extracted from the Web.config file:
