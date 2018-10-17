@@ -393,7 +393,7 @@ namespace NephroNet.Accounts.Patient
                 "<tr><td>Email: </td><td>" + email + "</td></tr>" +
                 "<tr><td>Phone#: </td><td>" + phone + "</td></tr>" +
                 "<tr><td>Gender: </td><td>" + gender + "</td></tr>" +
-                "<tr><td>Date of birth: </td><td>" + dob + "</td></tr>" +
+                "<tr><td>Date of birth: </td><td>" + Layouts.getBirthdateFormat(dob) + "</td></tr>" +
                 "</table>";
         }
         protected void btnOk_Click(object sender, EventArgs e)
