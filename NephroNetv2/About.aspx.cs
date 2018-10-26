@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -14,8 +16,63 @@ namespace NephroNet
         protected void Page_Load(object sender, EventArgs e)
         {
             //Delete the below after the first run:
-            //createNewDummyDataInHospitalDB();
-            //createRandomGendersDobs();
+            //createNewDummyDataInHospitalDB(); //10K records
+            //createRandomGendersDobs(); //10K records
+            //createRandomNames(); //10K records
+        }
+        protected void createRandomNames()
+        {
+            Configuration config = new Configuration();
+            SqlConnection connect = new SqlConnection(config.getConnectionString());
+            SqlCommand cmd = connect.CreateCommand();
+            string name = "";
+            connect.Open();
+            try
+            {
+                string path = System.Web.HttpContext.Current.Request.PhysicalApplicationPath + @"\Content\random_names.txt";
+                var lines = File.ReadAllLines(path);
+                var r = new Random();
+                var randomLineNumber = 0;
+                var line="";
+                List<string> names = new List<string>();
+                string firstname = "";
+                string lastname = "";
+                for (int i = 0; i < 10000; i++)
+                {
+                    //Get a random name for physician:
+                    randomLineNumber = r.Next(0, lines.Length - 1);
+                    line = lines[randomLineNumber];
+                    name = line.Replace("\t", " ").Replace("\n", "").Replace("'", "''");
+                    names = name.Split(' ').ToList<string>();
+                    firstname = names[0].ToString().TrimStart(' ').TrimEnd(' ');
+                    lastname = names[1].ToString().TrimStart(' ').TrimEnd(' ');
+                    //Insert into Physicians:
+                    cmd.CommandText = "update DB2_PhysicianShortProfiles set db2_physicianShortProfile_firstname = '" + firstname + "', " +
+                        "db2_physicianShortProfile_lastname = '" + lastname + "' where db2_physicianShortProfileId = '" + (i + 1) + "' ";
+                    cmd.ExecuteScalar();
+                    //Get a random name for patient:
+                    randomLineNumber = r.Next(0, lines.Length - 1);
+                    line = lines[randomLineNumber];
+                    name = line.Replace("\t", " ").Replace("\n", "").Replace("'", "''");
+                    names = name.Split(' ').ToList<string>();
+                    firstname = names[0].ToString().TrimStart(' ').TrimEnd(' ');
+                    lastname = names[1].ToString().TrimStart(' ').TrimEnd(' ');
+                    //Insert into Patients:
+                    cmd.CommandText = "update DB2_PatientShortProfiles set db2_patientShortProfile_firstname = '" + firstname + "', " +
+                        "db2_patientShortProfile_lastname = '" + lastname + "' where db2_patientShortProfileId = '" + (i + 1) + "' " +
+                        "and db2_patientShortProfile_firstname is null and db2_patientShortProfile_lastname is null";
+                    cmd.ExecuteScalar();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
+            connect.Close();
         }
         protected DateTime RandomDay(Random r_dob)
         {

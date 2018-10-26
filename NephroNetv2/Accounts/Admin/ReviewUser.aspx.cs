@@ -299,6 +299,29 @@ namespace NephroNet.Accounts.Admin
             connect.Close();
             return used;
         }
+        protected bool checkNameMatchHospitalRecord()
+        {
+            bool macth = true;
+            int count = 0;
+            int int_roleId = Convert.ToInt32(g_roleId);
+            SqlCommand cmd = connect.CreateCommand();
+            connect.Open();
+            if (int_roleId == 2)//2: Physician
+            {
+                cmd.CommandText = "select count(*) from DB2_PhysicianShortProfiles where db2_physicianShortProfile_firstname = '" + g_firstName + "' " +
+                    "and db2_physicianShortProfile_lastname = '"+g_lastName+"'  ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            else if (int_roleId == 3)//3: Patient
+            {
+                cmd.CommandText = "select count(*) from DB2_PhysicianShortProfiles where db2_physicianShortProfile_firstname = '" + g_firstName + "' " +
+                    "and db2_physicianShortProfile_lastname = '"+g_lastName+"' ";
+                count = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            connect.Close();
+            macth = (count == 0) ? false : true;
+            return macth;
+        }
         protected void btnApprove_Click(object sender, EventArgs e)
         {
             //Hide the success message:
@@ -325,6 +348,15 @@ namespace NephroNet.Accounts.Admin
                         lblMessage.Text = "There is already an active account for a physician in the system with the entered Physician ID";
                     else if (int_roleId == 3)//3: Patient
                         lblMessage.Text = "There is already an active account for a patient in the system with the entered Patient ID";
+                }
+                else if (!checkNameMatchHospitalRecord())
+                {
+                    lblMessage.Visible = true;
+                    lblMessage.ForeColor = System.Drawing.Color.Red;
+                    if (int_roleId == 2)//2: Physician
+                        lblMessage.Text = "There is no physician in a hospital with the entered physician name";
+                    else if (int_roleId == 3)//3: Patient
+                        lblMessage.Text = "There is no patient in a hospital with the entered patient name";
                 }
                 else
                 {
