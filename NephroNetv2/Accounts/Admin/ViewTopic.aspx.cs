@@ -599,7 +599,7 @@ namespace NephroNet.Accounts.Admin
             cmd.ExecuteScalar();
             cmd.CommandText = "select [entryId] from(SELECT rowNum = ROW_NUMBER() OVER(ORDER BY entryId ASC), * FROM [Entries] " +
                 "where topicId = '" + topicId + "' and userId = '" + userId + "' and entry_isDeleted = '0' and entry_hasImage = '" + hasImage +
-                "' and entry_isApproved = '0' and entry_isDenied = '0' " +
+                "' and entry_isApproved = '"+ entry_isApproved + "' and entry_isDenied = '0' " +
                 " ) as t where rowNum = '1'";
             entryId = cmd.ExecuteScalar().ToString();
             connect.Close();
