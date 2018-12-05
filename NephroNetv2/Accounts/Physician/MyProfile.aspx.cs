@@ -820,7 +820,9 @@ namespace NephroNet.Accounts.Physician
         {
             lblHospitalNameError.Visible = false;
             lblHospitalAddressError.Visible = false;
-            lblYearsOfExperienceFrom.Visible = false;
+            lblYearsOfExperienceError.Visible = false;
+            //lblYearsOfExperienceFrom.Visible = false;
+            //lblYearsOfExperienceTo.Visible = false;
             bool correct = true;
             if (string.IsNullOrWhiteSpace(txtHospitalName.Text))
             {
