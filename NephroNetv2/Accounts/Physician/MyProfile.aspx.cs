@@ -235,9 +235,9 @@ namespace NephroNet.Accounts.Physician
                     gN = Encryption.decrypt(gN, decryptionKey);
                     physicianId = Encryption.decrypt(physicianId, decryptionKey);
                     if (chkIsPrivate.Checked)
-                        lblPrivateMessage.Text = "Your account will become private";
+                        lblPrivateMessage.Text = "Your profile will become private";
                     else
-                        lblPrivateMessage.Text = "Only Admins can view your account";
+                        lblPrivateMessage.Text = "Only Admins can view your profile";
                     if (!string.IsNullOrWhiteSpace(dialysis))
                         txtDialysis.Text = dialysis;
                     if (!string.IsNullOrWhiteSpace(homeDialysis))

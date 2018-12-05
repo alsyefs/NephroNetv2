@@ -314,8 +314,8 @@ namespace NephroNet.Accounts.Admin
             }
             else if (int_roleId == 3)//3: Patient
             {
-                cmd.CommandText = "select count(*) from DB2_PhysicianShortProfiles where db2_physicianShortProfile_firstname = '" + g_firstName + "' " +
-                    "and db2_physicianShortProfile_lastname = '"+g_lastName+"' ";
+                cmd.CommandText = "select count(*) from DB2_PatientShortProfiles where db2_patientShortProfile_firstname = '" + g_firstName + "' " +
+                    "and db2_patientshortprofile_lastname = '" + g_lastName+"' ";
                 count = Convert.ToInt32(cmd.ExecuteScalar());
             }
             connect.Close();

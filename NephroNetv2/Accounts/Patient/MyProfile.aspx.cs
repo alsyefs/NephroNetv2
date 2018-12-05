@@ -231,9 +231,9 @@ namespace NephroNet.Accounts.Patient
                     comments = Encryption.decrypt(comments, decryptionKey);
                     patientId = Encryption.decrypt(patientId, decryptionKey);
                     if (chkIsPrivate.Checked)
-                        lblPrivateMessage.Text = "Your account will become private";
+                        lblPrivateMessage.Text = "Your profile will become private";
                     else
-                        lblPrivateMessage.Text = "Only Admins can view your account";
+                        lblPrivateMessage.Text = "Only Admins can view your profile";
                     if (!string.IsNullOrWhiteSpace(highBloodPressure))
                         txtHighBloodPressure.Text = highBloodPressure;
                     if (!string.IsNullOrWhiteSpace(diabetes))
